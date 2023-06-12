@@ -31,6 +31,7 @@ Firecrown Wrapper Flowchart --------------
 
 
 Input requirements --------------
+
 	 Mandatory  : Input file path to HD and covariance matrix,
 	 Name of HD file and covariance matrix file, cosmosis input
 	 `ini` file.  Assumption : HD and covariance matrix files are
@@ -41,7 +42,6 @@ Input requirements --------------
 	 `$TD/SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper
 	 --help`
 
-   [XXX: need a more standard location for the wrapper on perlmutter]
    
 Notes --------------
 	The wrapper can be used as : (a) a standalone unit for submitting
