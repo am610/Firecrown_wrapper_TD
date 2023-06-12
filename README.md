@@ -49,6 +49,7 @@ Notes --------------
 	submitting multiple batch job(s).
 
 Compiling ---------
+
          cd $TD_SOFTWARE/firecrown_wrapper
 	 pyinstaller --onefile Firecrown_wrapper.py
 	 if you get pyinstaller error then,
