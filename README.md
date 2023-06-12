@@ -48,6 +48,16 @@ Notes --------------
 	TD pipeline software's function : `submit_batch_jobs.sh` for
 	submitting multiple batch job(s).
 
+Compiling ---------
+         cd $TD_SOFTWARE/firecrown_wrapper
+	 pyinstaller --onefile Firecrown_wrapper.py
+	 if you get pyinstaller error then,
+	 add the following lines in the *.spec file :
+	 import sys ;
+	 sys.setrecursionlimit(sys.getrecursionlimit() * 5)
+	 then run the following again : 
+	 pyinstaller  Firecrown_wrapper.spec
+
 Syntax --------------
 	 (a) To simply run the code as a batch job in Perlmutter the
 	 following example job script can be used as a template :
