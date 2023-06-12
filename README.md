@@ -64,7 +64,7 @@ Compiling ---------
 	  pyinstaller  Firecrown_wrapper.spec
 
 Syntax --------------
-	 (a) To simply run the code as a batch job in Perlmutter the
+        (a) To simply run the code as a batch job in Perlmutter the
 	 following example job script can be used as a template :
 
 	  #!/bin/bash
