@@ -11,11 +11,13 @@ Firecrown Wrapper Manual for running with Cosmosis for SN Cosmology
 
 
 Summary --------------
+
 The Firecrown wrapper is a standalone script which links a Supernova input
 data file to Cosmosis for dark energy parameter estimation via firecrown
 likelihood module.
 
 Why --------------
+
 Firecrown runs in 3 stages, including a data-prep stage into sacc format.
 The firecrown wrapper executes these 3 stages as a single task, making
 firecrown easier to use and easier to embed in pipelines.
@@ -44,7 +46,8 @@ Input requirements --------------
 
    
 Notes --------------
-	The wrapper can be used as : (a) a standalone unit for submitting
+
+        The wrapper can be used as : (a) a standalone unit for submitting
 	batch job in Perlmutter or, (b) can also be used with SNANA/DESC
 	TD pipeline software's function : `submit_batch_jobs.sh` for
 	submitting multiple batch job(s).
