@@ -53,6 +53,7 @@ class CustomHelpFormatter(argparse.ArgumentDefaultsHelpFormatter):
                 lines.append(line)
         return lines
 
+
 time0 = time.time()
 now = datetime.datetime.now()
 print("Current Time = ", now)
@@ -150,7 +151,7 @@ with open(r"%s" % (SUBMIT_PATH), "w", buffering=1) as OF:
         "OMsig_marg",
         "w0ran",
         "waran",
-        "OMran"
+        "OMran",
     ]
     data = {}
     # -------------------------------
@@ -216,7 +217,7 @@ with open(r"%s" % (SUBMIT_PATH), "w", buffering=1) as OF:
         data[Key[0]] = "SUCCESS"
         # ********************
         # --------------------
-        HD_read = pd.read_csv(f1,comment='#',sep=r'\s+')
+        HD_read = pd.read_csv(f1, comment="#", sep=r"\s+")
         sacc_path_rm = "rm " + PWD + "/" + "srd-y1-converted.sacc"
         job0 = subprocess.Popen(sacc_path_rm, stdout=subprocess.PIPE, shell=True)
 
@@ -362,24 +363,28 @@ with open(r"%s" % (SUBMIT_PATH), "w", buffering=1) as OF:
         else:
             data[Key[3]] = "SUCCESS"
             data[Key[4]] = 1
-            #Attributes will be printed only in this (last) stage
+            # Attributes will be printed only in this (last) stage
             # "XXX"
-            cosmo_params = pd.read_csv(PLOT_PATH+'/means.txt',sep=r"\s+",comment='#',header=None).T
+            cosmo_params = pd.read_csv(
+                PLOT_PATH + "/means.txt", sep=r"\s+", comment="#", header=None
+            ).T
             cosmo_params = cosmo_params.T.set_index(0).T
-            data["FoM"] = int(FoM(PLOT_PATH+'/covmat.txt'))
+            data["FoM"] = int(FoM(PLOT_PATH + "/covmat.txt"))
             data["Ndof"] = np.shape(HD_read)[0]
-            data["CPU_MINUTES"] = (round((time.time() - time0)/60, 2)) # in minutes
+            data["CPU_MINUTES"] = round((time.time() - time0) / 60, 2)  # in minutes
             data["chi2"] = 22
             data["sigint"] = 0.0
             data["label"] = "none"
             data["BLIND"] = 0
             data["NWARNINGS"] = 1
-            data["w0"] = cosmo_params['cosmological_parameters--w'].iloc[0]
-            data["w0sig_marg"] = cosmo_params['cosmological_parameters--w'].iloc[1]
-            data["wa"] = cosmo_params['cosmological_parameters--wa'].iloc[0]
-            data["wasig_marg"] = cosmo_params['cosmological_parameters--wa'].iloc[1]
-            data["OM"] = cosmo_params['cosmological_parameters--omega_m'].iloc[0]
-            data["OMsig_marg"] = cosmo_params['cosmological_parameters--omega_m'].iloc[1]
+            data["w0"] = cosmo_params["cosmological_parameters--w"].iloc[0]
+            data["w0sig_marg"] = cosmo_params["cosmological_parameters--w"].iloc[1]
+            data["wa"] = cosmo_params["cosmological_parameters--wa"].iloc[0]
+            data["wasig_marg"] = cosmo_params["cosmological_parameters--wa"].iloc[1]
+            data["OM"] = cosmo_params["cosmological_parameters--omega_m"].iloc[0]
+            data["OMsig_marg"] = cosmo_params["cosmological_parameters--omega_m"].iloc[
+                1
+            ]
             data["w0ran"] = 0
             data["waran"] = 0
             data["OMran"] = 0
