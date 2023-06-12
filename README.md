@@ -101,7 +101,7 @@ Syntax --------------
 	 `sn_only.ini`, consult cosmosis manual for more information.
 
 
-	 (b) To run with `submit_batch_jobs.sh` a separate Input yaml
+(b) To run with `submit_batch_jobs.sh` a separate Input yaml
 	 file is needed suitable for `submit_batch_jobs.sh`. An example
 	 of a test.yaml is below :
 
