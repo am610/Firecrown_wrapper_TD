@@ -126,7 +126,8 @@ Syntax --------------
 
 
 Outputs --------------
-	 Each successful output will produce the following three
+
+Each successful output will produce the following three
 	 sub folders in the desired location :
 	 (1) COSMOSIS-CHAINS
 	     Contains the output chain files (name as written in input
