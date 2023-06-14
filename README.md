@@ -18,7 +18,7 @@ likelihood module.
 
 Why --------------
 
-Firecrown runs in 3 stages, including a data-prep stage into sacc format.
+Firecrown runs in 3 stages, including a data-prep stage into sacc [1] format.
 The firecrown wrapper executes these 3 stages as a single task, making
 firecrown easier to use and easier to embed in pipelines.
 
@@ -106,7 +106,8 @@ Syntax --------------
 	 of a test.yaml is below :
 
 
-	  ## YAML begins : CONFIG:
+	  ## YAML begins :
+	  CONFIG:
 	    BATCH_INFO: sbatch
 	    $SBATCH_TEMPLATES/SBATCH_Perlmutter.TEMPLATE 25
 	    JOBNAME: srun -n 2 $TD/SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper
@@ -125,7 +126,7 @@ Syntax --------------
 
 	 Launch the job : `submit_batch_jobs.sh test.yaml`
 
-         *** in NERSC Perlmutter, a starter kit is available in :
+         *** in NERSC Perlmutter, a starter kit is available with example inputs in :
 	 `$starter`
 
 
