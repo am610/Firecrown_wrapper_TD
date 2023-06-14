@@ -125,6 +125,9 @@ Syntax --------------
 
 	 Launch the job : `submit_batch_jobs.sh test.yaml`
 
+         *** in NERSC Perlmutter, a starter kit is available in :
+	 `$starter`
+
 
 Outputs --------------
 
