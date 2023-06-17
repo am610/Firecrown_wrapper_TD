@@ -54,7 +54,7 @@ Notes --------------
 
 Compiling ---------[**For Developers**]
 
-In Perlmutter it is not needed to be compiled. Developers can follow as below:
+For regular use in Perlmutter it is not needed to be compiled. Developers can follow as below:
 
           cd <firecrown_wrapper location>
 	  pyinstaller --onefile Firecrown_wrapper.py
