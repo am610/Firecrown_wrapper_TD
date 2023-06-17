@@ -55,7 +55,8 @@ Notes --------------
 Compiling ---------[**For Developers**]
 
 In Perlmutter it is not needed to be compiled. Developers can follow as below:
-From your cloned repo's location, an example : 
+From your cloned repo's location, an example :
+
           cd $TD_SOFTWARE/firecrown_wrapper
 	  pyinstaller --onefile Firecrown_wrapper.py
 	 if you get pyinstaller error then,
