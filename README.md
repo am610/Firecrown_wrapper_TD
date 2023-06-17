@@ -52,8 +52,9 @@ Notes --------------
 	TD pipeline software's function : `submit_batch_jobs.sh` for
 	submitting multiple batch job(s).
 
-Compiling ---------
-
+Compiling ---------[**For Developers**]
+In Perlmutter it is not needed to be compiled. Developers can follow as below:
+From your cloned repo's location, an example : 
           cd $TD_SOFTWARE/firecrown_wrapper
 	  pyinstaller --onefile Firecrown_wrapper.py
 	 if you get pyinstaller error then,
