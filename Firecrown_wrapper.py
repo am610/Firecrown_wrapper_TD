@@ -340,16 +340,19 @@ with open(r"%s" % (SUBMIT_PATH), "w", buffering=1) as OF:
         startTime = time.time()
         jobname = "cosmosis-postprocess"
         arg = " -o "
-        print("XXX",COSMOSIS_PATH)
+        print("XXX", COSMOSIS_PATH)
         print(str(ini.replace(".ini", ".txt")))
         print(os.path.join(COSMOSIS_PATH, str(ini.replace(".ini", ".txt"))))
         burnpath = os.path.join(COSMOSIS_PATH, str(ini.replace(".ini", ".txt")))
-        burn = (
-          " --burn " +  str(burnin(burnpath)) + " "
-        )  # 15% burnin
+        burn = " --burn " + str(burnin(burnpath)) + " "  # 15% burnin
         print(burn)
         Vector = (
-            " " + COSMOSIS_PATH + ini.replace(".ini", "*.txt") + arg + PLOT_PATH + str(burn)
+            " "
+            + COSMOSIS_PATH
+            + ini.replace(".ini", "*.txt")
+            + arg
+            + PLOT_PATH
+            + str(burn)
         )
         with redirected_stdout(OF):
             print("cosmosis-postprocess Input Vector:", Vector)
