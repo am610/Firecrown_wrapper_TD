@@ -34,12 +34,12 @@ Firecrown Wrapper Flowchart --------------
 
 Input requirements --------------
 
-	 Mandatory  : Input file path to HD and covariance matrix,
+Mandatory  : Input file path to HD and covariance matrix,
 	 Name of HD file and covariance matrix file, cosmosis input
 	 `ini` file.  Assumption : HD and covariance matrix files are
 	 in the same folder.
 
-	 Additional optional attributes
+Additional optional attributes
 	 can be seen via the help command as : 
 	 `$TD/SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper
 	 --help`
@@ -124,7 +124,6 @@ Example of `lsst_srd_y10` are kept in :
 	    /global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+submit_batch_jobs/Cosmosis_Input_Scripts/sn_planck.ini
 	    ENV_REQUIRE: FIRECROWN_DIR FIRECROWN_EXAMPLES_DIR CSL_DIR
 	    OUTDIR: output_firecrown_sn_cmb WFITAVG:
-	   #- LSST_BINNED_COV_BBC_SIMDATA_SPECZ
 	    - LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ
 	    COVOPT:  ALL NOSYS INPDIR: -
 	    /pscratch/sd/d/desctd/PIPPIN_OUTPUT/PLASTICC_COMBINED_PUBLISHED/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_1/output
