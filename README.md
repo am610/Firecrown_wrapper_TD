@@ -53,7 +53,7 @@ The wrapper can be used as :
 batch job in Perlmutter or,
 
 (b) can also be used with `SNANA` or `DESC
-TD` pipeline software's function : `submit_batch_jobs.sh` for
+TD` pipeline's utility function : `submit_batch_jobs.sh` for
 submitting multiple batch job(s).
 
 Compiling ---------[**For Developers**]
@@ -62,11 +62,13 @@ For regular use in Perlmutter it is not needed to be compiled. Developers can fo
 
           cd <firecrown_wrapper location>
 	  pyinstaller --onefile Firecrown_wrapper.py
-	 if you get pyinstaller error then,
-	 add the following lines in the *.spec file :
+
+if you get pyinstaller error then, add the following lines in the `Firecrown_wrapper.spec` file :
+
 	  import sys ;
 	  sys.setrecursionlimit(sys.getrecursionlimit() * 5)
-	 then run the following again : 
+then run the following again :
+
 	  pyinstaller  Firecrown_wrapper.spec
 
 Syntax --------------
