@@ -4,25 +4,25 @@ https://github.com/am610/Firecrown_wrapper_TD
 ********************************************************************
 ********************************************************************
 
-**Firecrown Wrapper Manual for running with Cosmosis for SN Cosmology
+**Firecrown Wrapper Manual for running with Cosmosis for SN Cosmology**
 
 ********************************************************************
 ********************************************************************
 
 
-Summary --------------
+**Summary** --------------
 
 The Firecrown wrapper is a standalone script which links a Supernova input
 data file to Cosmosis for dark energy parameter estimation via firecrown
 likelihood module.
 
-Why --------------
+**Why** --------------
 
 Firecrown runs in 3 stages, including a data-prep stage into sacc [1] format.
 The firecrown wrapper executes these 3 stages as a single task, making
 firecrown easier to use and easier to embed in pipelines.
 
-Firecrown Wrapper Flowchart --------------
+**Firecrown Wrapper Flowchart** --------------
 
  SN Hubble Diagram (HD) + Covariance Matrix [Input]
  --> Single `sacc` file
@@ -32,7 +32,7 @@ Firecrown Wrapper Flowchart --------------
 	           --> Plots [Output]
 
 
-Input requirements --------------
+**Input requirements** --------------
 
 Mandatory  :
 
@@ -52,7 +52,7 @@ Additional optional attributes
 	 --help`
 
    
-Notes --------------
+**Notes** --------------
 
 The wrapper can be used as :
 
@@ -63,7 +63,7 @@ batch job in Perlmutter or,
 TD` pipeline's utility function : `submit_batch_jobs.sh` for
 submitting multiple batch job(s).
 
-Compiling ---------[**For Developers**]
+**Compiling** ---------[**For Developers**]
 
 For regular use in Perlmutter it is not needed to be compiled. Developers can follow as below:
 
@@ -78,7 +78,7 @@ then run the following again :
 
 	  pyinstaller  Firecrown_wrapper.spec
 
-Syntax --------------
+**Syntax** --------------
 
 (a) To simply run the code as a batch job in Perlmutter the
 	 following example job script can be used as a template :
@@ -145,7 +145,7 @@ Launch the job : `submit_batch_jobs.sh test.yaml`
 	 `/global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+submit_batch_jobs`
 
 
-Outputs --------------
+**Outputs** --------------
 
 Each successful output will produce the following three
 	 sub folders in the desired location :
@@ -169,7 +169,7 @@ Each successful output will produce the following three
 	 (some fields are still under construction).
 
 
-Example Runtimes --------------
+**Example Runtimes** --------------
 
          Running the example `sn_planck.ini` for emcee smapler with nsteps = 10, samples = 100,walkers = 24, etc. using submit_batch_jobs.sh
 	 for different number of cores and N (= MPI tasks) specification
