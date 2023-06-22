@@ -75,15 +75,15 @@ Syntax --------------
 	  #SBATCH -C cpu
 	  #SBATCH --qos=debug
 	  #SBATCH --time=00:10:00
-	  #SBATCH --nodes=3
+	  #SBATCH --nodes=2
 	  #SBATCH --error=perl_firecrown-%j.err
 	  #SBATCH -o perl_firecrown.log
 	  #SBATCH --mail-user=ayanmitra375@gmail.com
 	  #SBATCH -J Firecrown
 
 
-	  NUM_PROCESSES=16
-	  export OMP_NUM_THREADS=4
+	  NUM_PROCESSES=32
+	  export OMP_NUM_THREADS=16
 
 	  #Example 1
 	  # Syntax : srun -u -n ${NUM_PROCESSES}  --cpus-per-task ${OMP_NUM_THREADS} $TD/SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper [Input/Folder/HD/covariance/matrix] [HD.txt] [cov.txt] [cosmosis.ini]
@@ -101,7 +101,9 @@ Syntax --------------
 	 maximum time limit is 12 hours). The outputs will be stored
 	 in $PWD/FIRECROWN_OUTPUT/. cosmosis input file shown here is
 	 `sn_only.ini`, consult cosmosis manual for more information.
-
+	 `ini` file should be at the same location as job script.
+	 Example of `lsst_srd_y10` are kept in : 
+	 `/global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+sbatch/`
 
 (b) To run with `submit_batch_jobs.sh` a separate Input yaml
 	 file is needed suitable for `submit_batch_jobs.sh`. An example
