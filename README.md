@@ -47,10 +47,14 @@ Input requirements --------------
    
 Notes --------------
 
-        The wrapper can be used as : (a) a standalone unit for submitting
-	batch job in Perlmutter or, (b) can also be used with SNANA/DESC
-	TD pipeline software's function : `submit_batch_jobs.sh` for
-	submitting multiple batch job(s).
+The wrapper can be used as :
+
+(a) a standalone unit for submitting
+batch job in Perlmutter or,
+
+(b) can also be used with `SNANA` or `DESC
+TD` pipeline software's function : `submit_batch_jobs.sh` for
+submitting multiple batch job(s).
 
 Compiling ---------[**For Developers**]
 
