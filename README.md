@@ -94,14 +94,15 @@ Syntax --------------
 Save the above code in a file `test.sh` and then from Perlmutter terminal submit the job as : `sbatch test.sh`
 
 
-	 *Notes : qos = `debug` can be changed to `regular`. `nodes`
-	 and time can be modified accordingly (as of now Perlmutter's
-	 maximum time limit is 12 hours). The outputs will be stored
-	 in $PWD/FIRECROWN_OUTPUT/. cosmosis input file shown here is
-	 `sn_only.ini`, consult cosmosis manual for more information.
-	 `ini` file should be at the same location as job script.
-	 Example of `lsst_srd_y10` are kept in : 
-	 `/global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+sbatch/`
+*Notes : qos = `debug` can be changed to `regular`. `nodes`
+and time can be modified accordingly (as of now Perlmutter's
+maximum time limit is 12 hours). The outputs will be stored
+in `$PWD/FIRECROWN_OUTPUT/`. cosmosis input file shown here is
+`sn_only.ini`, consult cosmosis manual for more information.
+`ini` file should be at the same location as job script.
+
+Example of `lsst_srd_y10` are kept in : 
+`/global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+sbatch/`
 
 (b) To run with `submit_batch_jobs.sh` a separate Input yaml
 	 file is needed suitable for `submit_batch_jobs.sh`. An example
@@ -129,7 +130,7 @@ Save the above code in a file `test.sh` and then from Perlmutter terminal submit
 Launch the job : `submit_batch_jobs.sh test.yaml`
 
 *** In NERSC Perlmutter, a starter kit is available with example inputs in :
-	 `$starter`
+	 `/global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+submit_batch_jobs`
 
 
 Outputs --------------
