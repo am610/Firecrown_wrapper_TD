@@ -137,6 +137,7 @@ Outputs --------------
 
 Each successful output will produce the following three
 	 sub folders in the desired location :
+	 
 	 (1) COSMOSIS-CHAINS
 	     Contains the output chain files (name as written in input
 	     `.ini` file) and `INPUT.INFO` file which logs all input
