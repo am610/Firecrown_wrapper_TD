@@ -34,9 +34,16 @@ Firecrown Wrapper Flowchart --------------
 
 Input requirements --------------
 
-Mandatory  : Input file path to HD and covariance matrix,
-	 Name of HD file and covariance matrix file, cosmosis input
-	 `ini` file.  Assumption : HD and covariance matrix files are
+Mandatory  :
+
+(1) Input file path to HD and covariance matrix,
+
+(2)  Name of HD file and covariance matrix file,
+
+(3) cosmosis input
+	 `ini` file.
+
+Assumption : HD and covariance matrix files are
 	 in the same folder.
 
 Additional optional attributes
