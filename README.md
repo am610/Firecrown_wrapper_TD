@@ -91,9 +91,7 @@ Syntax --------------
 
 	  # ## End of file
 
-
-	 Save the above code in a file `test.sh` and then from Perlmutter
-	 terminal submit the job as : `sbatch test.sh`
+Save the above code in a file `test.sh` and then from Perlmutter terminal submit the job as : `sbatch test.sh`
 
 
 	 *Notes : qos = `debug` can be changed to `regular`. `nodes`
