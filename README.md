@@ -126,9 +126,9 @@ Save the above code in a file `test.sh` and then from Perlmutter terminal submit
 	  ##END_YAML
 
 
-	 Launch the job : `submit_batch_jobs.sh test.yaml`
+Launch the job : `submit_batch_jobs.sh test.yaml`
 
-         *** in NERSC Perlmutter, a starter kit is available with example inputs in :
+*** In NERSC Perlmutter, a starter kit is available with example inputs in :
 	 `$starter`
 
 
