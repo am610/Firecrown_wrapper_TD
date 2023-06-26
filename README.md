@@ -2,7 +2,7 @@ Ayan Mitra 2023
 
 https://github.com/am610/Firecrown_wrapper_TD
 
-**Firecrown Wrapper Manual for running with Cosmosis for SN Cosmology**
+# **Firecrown Wrapper Manual for running with Cosmosis for SN Cosmology**
 
 
 
