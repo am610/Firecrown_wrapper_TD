@@ -6,13 +6,13 @@ https://github.com/am610/Firecrown_wrapper_TD
 
 
 
-**Summary** --------------
+## **Summary** --------------
 
 The Firecrown wrapper is a standalone script which links a Supernova input
 data file to Cosmosis for dark energy parameter estimation via firecrown
 likelihood module.
 
-**Why** --------------
+## **Why** --------------
 
 Firecrown runs in 3 stages, including a data-prep stage into sacc [1] format.
 The firecrown wrapper executes these 3 stages as a single task, making
