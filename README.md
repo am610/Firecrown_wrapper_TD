@@ -30,7 +30,7 @@ firecrown easier to use and easier to embed in pipelines.
 
 ## **Input requirements** 
 
-Mandatory  :
+#### Mandatory  :
 
 (1) Input file path to HD and covariance matrix,
 
