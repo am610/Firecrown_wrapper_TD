@@ -47,7 +47,8 @@ Additional optional attributes
 	 `$TD/SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper
 	 --help`
 
-ENV Requirement : The TD ENV should be active
+#### ENV Requirement : 
+The TD ENV should be active
 
 `/global/cfs/cdirs/lsst/groups/TD/setup_td.sh`
    
