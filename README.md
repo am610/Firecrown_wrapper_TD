@@ -140,7 +140,7 @@ Example of `lsst_srd_y10` are kept in :
 
 Launch the job : `submit_batch_jobs.sh test.yaml`
 
-*** In NERSC Perlmutter, a starter kit is available with example inputs in :
+*** **In NERSC Perlmutter, a starter kit is available with example inputs in** :
 	 `/global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+submit_batch_jobs`
 
 
