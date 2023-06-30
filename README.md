@@ -48,9 +48,13 @@ Additional optional attributes
 	 --help`
 
 #### ENV Requirement : 
-The TD ENV should be active
+(a) **Perlmutter** :The TD ENV should be active
 
-`/global/cfs/cdirs/lsst/groups/TD/setup_td.sh`
+`source /global/cfs/cdirs/lsst/groups/TD/setup_td.sh`
+
+(b) **Chicago-RCC** : 
+
+(c) **FNAL** :
    
 ## **Notes** 
 
