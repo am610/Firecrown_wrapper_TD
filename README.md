@@ -82,7 +82,7 @@ then run the following again :
 
 	  pyinstaller  Firecrown_wrapper.spec
 
-## **Syntax** 
+## **Syntax** (Perlmutter Specific)
 
 (a) To simply run the code as a batch job in Perlmutter the
 	 following example job script can be used as a template :
