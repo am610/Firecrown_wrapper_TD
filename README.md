@@ -43,7 +43,7 @@ Assumption : HD and covariance matrix files are
 	 in the same folder.
 
 Additional optional attributes
-	 can be seen via the help command as : 
+	 can be seen (in Perlmutter) via the following help command : 
 	 `$TD/SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper
 	 --help`
 
