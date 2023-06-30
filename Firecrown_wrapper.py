@@ -23,7 +23,7 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawTextHelpF
 from contextlib import contextmanager
 import textwrap
 from FoM import FoM
-
+import CHISQ
 
 logging.basicConfig(level=logging.INFO)
 with warnings.catch_warnings():
@@ -386,7 +386,7 @@ with open(r"%s" % (SUBMIT_PATH), "w", buffering=1) as OF:
             data["FoM"] = int(FoM(PLOT_PATH + "/covmat.txt"))
             data["Ndof"] = np.shape(HD_read)[0]
             data["CPU_MINUTES"] = round((time.time() - time0) / 60, 2)  # in minutes
-            data["chi2"] = 22
+            data["chi2"] = round(float(CHISQ.ch(COSMOSIS_PATH,ini)),3)  #22
             data["sigint"] = 0.0
             data["label"] = "none"
             data["BLIND"] = 0
