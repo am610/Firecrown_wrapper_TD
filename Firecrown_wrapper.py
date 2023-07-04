@@ -64,12 +64,6 @@ ENV = os.environ["SNANA_DEBUG"]
 OUTPUT_PATH = os.path.join(
     ENV, "submit_batch_firecrown/NEW_AYAN_DEBUG-3/FIRECROWN_OUTPUT/"
 )
-# OUTPUT_PATH = (
-#    ENV
-#    + "/"
-#    + "submit_batch_firecrown/NEW_AYAN_DEBUG-3/FIRECROWN_OUTPUT/"  # + dt_string
-# )  # 1 This can be an user arg *** XXX
-
 
 usage = "Mandatory arguments required in  fixed order"
 # parser = argparse.ArgumentParser(formatter_class=CustomHelpFormatter, description=usage)
@@ -98,7 +92,6 @@ parser.add_argument(
     "--summary",
     type=pathlib.Path,
     default=os.path.join(OUTPUT_PATH, "SUMMARY.YAML"),
-    # default=OUTPUT_PATH + "/SUMMARY.YAML", # XXX
     help="-s SUMMARY.YAML output path (Default: %s)" % (OUTPUT_PATH),
 )
 """
