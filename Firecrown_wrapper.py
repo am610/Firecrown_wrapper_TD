@@ -1,8 +1,9 @@
 """
-python Firecrown_wrapper_example-2.py /global/homes/a/ayanmitr/Analysis/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_1/output hubble_diagram.txt covsys_000.txt.gz sn_only.ini -O $HOME/trash -p "omega_m = 0.3"
+Example Input :
+python Firecrown_wrapper.py /global/homes/a/ayanmitr/Analysis/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_1/output hubble_diagram.txt covsys_000.txt.gz sn_only.ini -O $HOME/trash -p "omega_m = 0.3"
 
 
-$SNANA_DEBUG/submit_batch_firecrown/NEW_AYAN_DEBUG-3/dist/Firecrown_wrapper_example-2 /global/homes/a/ayanmitr/Analysis/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_1/output hubble_diagram.txt covsys_000.txt.gz sn_only.ini
+$TD_SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper /global/homes/a/ayanmitr/Analysis/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_1/output hubble_diagram.txt covsys_000.txt.gz sn_only.ini
 """
 
 import pandas as pd
