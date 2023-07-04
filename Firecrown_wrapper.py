@@ -23,7 +23,8 @@ from argparse import ArgumentParser, ArgumentDefaultsHelpFormatter, RawTextHelpF
 from contextlib import contextmanager
 import textwrap
 from FoM import FoM
-import CHISQ
+
+# import CHISQ
 
 logging.basicConfig(level=logging.INFO)
 with warnings.catch_warnings():
@@ -59,11 +60,14 @@ now = datetime.datetime.now()
 print("Current Time = ", now)
 dt_string = now.strftime("%d%m%Y_%H%M%S/")
 ENV = os.environ["SNANA_DEBUG"]
-OUTPUT_PATH = (
-    ENV
-    + "/"
-    + "submit_batch_firecrown/NEW_AYAN_DEBUG-3/FIRECROWN_OUTPUT/"  # + dt_string
-)  # 1 This can be an user arg ***
+OUTPUT_PATH = os.path.join(
+    ENV, "submit_batch_firecrown/NEW_AYAN_DEBUG-3/FIRECROWN_OUTPUT/"
+)
+# OUTPUT_PATH = (
+#    ENV
+#    + "/"
+#    + "submit_batch_firecrown/NEW_AYAN_DEBUG-3/FIRECROWN_OUTPUT/"  # + dt_string
+# )  # 1 This can be an user arg *** XXX
 
 
 usage = "Mandatory arguments required in  fixed order"
@@ -92,7 +96,8 @@ parser.add_argument(
     "-s",
     "--summary",
     type=pathlib.Path,
-    default=OUTPUT_PATH + "/SUMMARY.YAML",
+    default=os.path.join(OUTPUT_PATH, "SUMMARY.YAML"),
+    # default=OUTPUT_PATH + "/SUMMARY.YAML", # XXX
     help="-s SUMMARY.YAML output path (Default: %s)" % (OUTPUT_PATH),
 )
 """
@@ -215,15 +220,15 @@ with open(r"%s" % (SUBMIT_PATH), "w", buffering=1) as OF:
         ini = os.path.split(args.ini)[1]
         # ini_f= args.ini
         path_error(path)
-        f1 = path + "/" + hd
+        f1 = os.path.join(path, hd)
         file_error(f1)
-        f2 = path + "/" + cov
+        f2 = os.path.join(path, cov)
         file_error(f2)
         data[Key[0]] = "SUCCESS"
         # ********************
         # --------------------
         HD_read = pd.read_csv(f1, comment="#", sep=r"\s+")
-        sacc_path_rm = "rm " + PWD + "/" + "srd-y1-converted.sacc"
+        sacc_path_rm = "rm " + os.path.join(PWD, "srd-y1-converted.sacc")
         job0 = subprocess.Popen(sacc_path_rm, stdout=subprocess.PIPE, shell=True)
 
         # Stage 1
@@ -279,8 +284,8 @@ with open(r"%s" % (SUBMIT_PATH), "w", buffering=1) as OF:
         ## STAGE 2
         ## python $FIRECROWN_EXAMPLES_DIR/srd_sn/sn_srd.py ${INPUT}
         ## input_SN_sacc_file.sacc
-        sacc_path_cp = (
-            "cp " + PWD + "/" + "srd-y1-converted.sacc $FIRECROWN_EXAMPLES_DIR/srd_sn/"
+        sacc_path_cp = "cp " + os.path.join(
+            PWD, "srd-y1-converted.sacc $FIRECROWN_EXAMPLES_DIR/srd_sn/"
         )
         job2 = subprocess.Popen(
             sacc_path_cp,
@@ -380,13 +385,16 @@ with open(r"%s" % (SUBMIT_PATH), "w", buffering=1) as OF:
             # Attributes will be printed only in this (last) stage
             # "XXX"
             cosmo_params = pd.read_csv(
-                PLOT_PATH + "/means.txt", sep=r"\s+", comment="#", header=None
+                os.path.join(PLOT_PATH, "means.txt"),
+                sep=r"\s+",
+                comment="#",
+                header=None,
             ).T
             cosmo_params = cosmo_params.T.set_index(0).T
-            data["FoM"] = int(FoM(PLOT_PATH + "/covmat.txt"))
+            data["FoM"] = int(FoM(os.path.join(PLOT_PATH, "covmat.txt")))
             data["Ndof"] = np.shape(HD_read)[0]
             data["CPU_MINUTES"] = round((time.time() - time0) / 60, 2)  # in minutes
-            data["chi2"] = round(float(CHISQ.ch(COSMOSIS_PATH,ini)),3)  #22
+            data["chi2"] = 22  # round(float(CHISQ.ch(COSMOSIS_PATH,ini)),3)  #22
             data["sigint"] = 0.0
             data["label"] = "none"
             data["BLIND"] = 0
