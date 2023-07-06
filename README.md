@@ -67,12 +67,11 @@ batch job in Perlmutter or,
 TD` pipeline's utility function : `submit_batch_jobs.sh` for
 submitting multiple batch job(s).
 
-## **Installation**
-	  ```		
+## **Installation**		
           git clone https://github.com/am610/Firecrown_wrapper_TD.git
 	  cd Firecrown_wrapper_TD/
    	  pyinstaller Firecrown_wrapper.spec
-	  ```
+	  
 This will create the executable version of the wrapper. If `pyinstaller` is not present, install using `pip` [2].   
 
 ## **Compiling** ---------[**For Developers**]
