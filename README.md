@@ -79,21 +79,6 @@ batch job in Perlmutter using `sbatch`.
 
 
 
-## **Compiling** ---------[**For Developers**]
-
-For regular use in Perlmutter it is not needed to be compiled. Developers can follow as below:
-
-	  cd <firecrown_wrapper location>
-	  pyinstaller --onefile Firecrown_wrapper.py
-
-if you get pyinstaller error then, add the following lines in the `Firecrown_wrapper.spec` file :
-
-	  import sys ;
-	  sys.setrecursionlimit(sys.getrecursionlimit() * 5)
-then run the following again :
-
-	  pyinstaller  Firecrown_wrapper.spec
-
 ## **Syntax** (Perlmutter Specific)
 
 (a) To run with `submit_batch_jobs.sh` a separate Input yaml
@@ -160,6 +145,21 @@ in `$PWD/FIRECROWN_OUTPUT/`. cosmosis input file shown here is
 
 Example of `lsst_srd_y10` are kept in : 
 `/global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+sbatch/`
+
+## **Compiling** ---------[**For Developers**]
+
+For regular use in Perlmutter it is not needed to be compiled. Developers can follow as below:
+
+	  cd <firecrown_wrapper location>
+	  pyinstaller --onefile Firecrown_wrapper.py
+
+if you get pyinstaller error then, add the following lines in the `Firecrown_wrapper.spec` file :
+
+	  import sys ;
+	  sys.setrecursionlimit(sys.getrecursionlimit() * 5)
+then run the following again :
+
+	  pyinstaller  Firecrown_wrapper.spec
 
 
 ## **Outputs** 
