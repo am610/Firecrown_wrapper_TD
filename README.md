@@ -75,7 +75,7 @@ TD` pipeline's utility function : `submit_batch_jobs.sh` for
 submitting multiple batch job(s).
 
 (b) or also as a standalone unit for submitting
-batch job in Perlmutter.
+batch job in Perlmutter using `sbatch`.
 
 
 
