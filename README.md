@@ -92,7 +92,35 @@ then run the following again :
 
 ## **Syntax** (Perlmutter Specific)
 
-(a) To simply run the code as a batch job in Perlmutter the
+(a) To run with `submit_batch_jobs.sh` a separate Input yaml
+	 file is needed suitable for `submit_batch_jobs.sh`. An example
+	 of a test.yaml is below :
+
+
+	  ## YAML begins :
+	  CONFIG:
+	    BATCH_INFO: sbatch
+	    $SBATCH_TEMPLATES/SBATCH_Perlmutter.TEMPLATE 25
+	    JOBNAME: srun -n 2 $TD/SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper
+	    BATCH_WALLTIME: "12:00:00" FIRECROWN_INPUT_FILE:
+	    /global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+submit_batch_jobs/Cosmosis_Input_Scripts/sn_planck.ini
+	    ENV_REQUIRE: FIRECROWN_DIR FIRECROWN_EXAMPLES_DIR CSL_DIR
+	    OUTDIR: output_firecrown_sn_cmb WFITAVG:
+	    - LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ
+	    COVOPT:  ALL NOSYS INPDIR: -
+	    /pscratch/sd/d/desctd/PIPPIN_OUTPUT/PLASTICC_COMBINED_PUBLISHED/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_1/output
+	    -
+	    /pscratch/sd/d/desctd/PIPPIN_OUTPUT/PLASTICC_COMBINED_PUBLISHED/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_2/output
+	  ##END_YAML
+
+
+Launch the job : `submit_batch_jobs.sh test.yaml`
+
+*** **In NERSC Perlmutter, a starter kit is available with example inputs in** :
+	 `/global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+submit_batch_jobs`
+
+
+(b) To simply run the code as a batch job in Perlmutter the
 	 following example job script can be used as a template :
 
 	  #!/bin/bash
@@ -128,33 +156,6 @@ in `$PWD/FIRECROWN_OUTPUT/`. cosmosis input file shown here is
 
 Example of `lsst_srd_y10` are kept in : 
 `/global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+sbatch/`
-
-(b) To run with `submit_batch_jobs.sh` a separate Input yaml
-	 file is needed suitable for `submit_batch_jobs.sh`. An example
-	 of a test.yaml is below :
-
-
-	  ## YAML begins :
-	  CONFIG:
-	    BATCH_INFO: sbatch
-	    $SBATCH_TEMPLATES/SBATCH_Perlmutter.TEMPLATE 25
-	    JOBNAME: srun -n 2 $TD/SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper
-	    BATCH_WALLTIME: "12:00:00" FIRECROWN_INPUT_FILE:
-	    /global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+submit_batch_jobs/Cosmosis_Input_Scripts/sn_planck.ini
-	    ENV_REQUIRE: FIRECROWN_DIR FIRECROWN_EXAMPLES_DIR CSL_DIR
-	    OUTDIR: output_firecrown_sn_cmb WFITAVG:
-	    - LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ
-	    COVOPT:  ALL NOSYS INPDIR: -
-	    /pscratch/sd/d/desctd/PIPPIN_OUTPUT/PLASTICC_COMBINED_PUBLISHED/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_1/output
-	    -
-	    /pscratch/sd/d/desctd/PIPPIN_OUTPUT/PLASTICC_COMBINED_PUBLISHED/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_2/output
-	  ##END_YAML
-
-
-Launch the job : `submit_batch_jobs.sh test.yaml`
-
-*** **In NERSC Perlmutter, a starter kit is available with example inputs in** :
-	 `/global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+submit_batch_jobs`
 
 
 ## **Outputs** 
