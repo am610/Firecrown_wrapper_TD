@@ -68,7 +68,7 @@ This will create the executable version of the wrapper. If `pyinstaller` is not 
 
 ### **Notes** 
 
-The wrapper can be used as :
+The wrapper can be used :
 
 (a) with `SNANA` or `DESC
 TD` pipeline's utility function : `submit_batch_jobs.sh` for
