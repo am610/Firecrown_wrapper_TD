@@ -56,6 +56,16 @@ Additional optional attributes
 
 (c) **FNAL**  :
    
+
+
+## **Installation**		
+
+	  git clone https://github.com/am610/Firecrown_wrapper_TD.git
+	  cd Firecrown_wrapper_TD/
+   	  pyinstaller Firecrown_wrapper.spec
+	  
+This will create the executable version of the wrapper. If `pyinstaller` is not present, install using `pip` [2].   
+
 ### **Notes** 
 
 The wrapper can be used as :
@@ -68,14 +78,6 @@ submitting multiple batch job(s).
 batch job in Perlmutter.
 
 
-
-## **Installation**		
-
-	  git clone https://github.com/am610/Firecrown_wrapper_TD.git
-	  cd Firecrown_wrapper_TD/
-   	  pyinstaller Firecrown_wrapper.spec
-	  
-This will create the executable version of the wrapper. If `pyinstaller` is not present, install using `pip` [2].   
 
 ## **Compiling** ---------[**For Developers**]
 
