@@ -10,7 +10,7 @@ https://github.com/am610/Firecrown_wrapper_TD
 
 The Firecrown wrapper is a standalone script which links a Supernova input
 data file to Cosmosis for dark energy parameter estimation via firecrown
-likelihood module. *The wrapper can be used in any system, provided* `Firecrown` *and* `Cosmosis` *are installed in the environment. However, the current version of the* README *is mostly focused on, use in* NERSC Perlmutter LSST DESC *environment.*
+likelihood module. ```diff ! *The wrapper can be used in any system, provided* `Firecrown` *and* `Cosmosis` *are installed in the environment. However, the current version of the* README *is mostly focused on, use in* NERSC Perlmutter LSST DESC *environment.* ```
 
 ## **Why** 
 
