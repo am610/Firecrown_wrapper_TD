@@ -291,37 +291,30 @@ def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
         summary["STAGE0"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
         write_summary()
-#            with open(os.path.join(error_path, 'INPUT.INFO'), 'a') as f:
-#                f.write(f"SACC Input Vector: {stage_1_command}\n")
         raise RuntimeError("Stage 1 failed. Check generate_sn_data error logs.")
     else:
         summary["STAGE0"] = "SUCCESSFUL"
         write_summary()
-#        if rank == 0:
-#            with open(os.path.join(error_path, 'INPUT.INFO'), 'a') as f:
-#                f.write(f"SACC Input Vector: {stage_1_command}\n")
+
+        # Copy srd-y1-converted.sacc to $FIRECROWN_EXAMPLES_DIR/srd_sn/ if stage is successful
+        #copy_command = f"cp srd-y1-converted.sacc $FIRECROWN_EXAMPLES_DIR/srd_sn/"
+        #subprocess.run(copy_command, shell=True, check=True)
 
 
     # Stage 2
     summary["STAGE1"] = "STARTED"
     write_summary()
-    stage_2_command = f"cosmosis {ini} -p output.filename={output_path}/{ini.replace('.ini', '.txt')} --mpi"
+    stage_2_command = f"cosmosis {ini} -p firecrown_likelihood.sacc_file={os.getcwd()}/srd-y1-converted.sacc output.filename={output_path}/{ini.replace('.ini', '.txt')} --mpi"
     commands.append(f"\n Cosmosis Input Vector: {stage_2_command} \n")
     returncode = run_subprocess(stage_2_command, f"{error_path}/COSMOSIS_output_{ini}.log", f"{error_path}/COSMOSIS_output_ERROR_{ini}.err")
     if returncode != 0:
         summary["STAGE1"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
         write_summary()
-#        if rank == 0:
-#            with open(os.path.join(error_path, 'INPUT.INFO'), 'a') as f:
-#                f.write(f"Cosmosis Input Vector: {stage_2_command}\n")
         raise RuntimeError("Stage 2 failed. Check COSMOSIS error logs.")
     else:
         summary["STAGE1"] = "SUCCESSFUL"
         write_summary()
-#        if rank == 0:
-#            with open(os.path.join(error_path, 'INPUT.INFO'), 'a') as f:
-#                f.write(f"Cosmosis Input Vector: {stage_2_command}\n")
     
     # Stage 3
     summary["STAGE2"] = "STARTED"
@@ -334,16 +327,10 @@ def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
         summary["STAGE2"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
         write_summary()
-#        if rank == 0:
-#            with open(os.path.join(error_path, 'INPUT.INFO'), 'a') as f:
-#                f.write(f"cosmosis-postprocess Input Vector: {stage_3_command}\n")
         raise RuntimeError("Stage 3 failed. Check PostProcess error logs.")
     else:
         summary["STAGE2"] = "SUCCESSFUL"
         write_summary()
-#        if rank == 0:
-#            with open(os.path.join(error_path, 'INPUT.INFO'), 'a') as f:
-#                f.write(f"cosmosis-postprocess Input Vector: {stage_3_command}\n")
     # Stage 4
     summary["STAGE3"] = "STARTED"
     write_summary()
@@ -404,7 +391,7 @@ def main():
     output_path = os.path.join(args.outdir , "COSMOSIS-CHAINS")
     plot_path = os.path.join(args.outdir , "PLOTS")
 
-    print("XXX",args.path, args.hd, args.cov, args.ini,error_path, output_path, plot_path)
+    #print("XXX",args.path, args.hd, args.cov, args.ini,error_path, output_path, plot_path)
     # Write to INPUT.INFO file
     with open(os.path.join(error_path, 'INPUT.INFO'), 'w') as f:
         f.write('STAGE 0 = ALL PATH AND FILES IN ARGUMENTS CHECK\n')
