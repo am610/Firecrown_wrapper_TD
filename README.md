@@ -1,206 +1,187 @@
-Ayan Mitra 2023
+# Firecrown Wrapper (TD)
 
-https://github.com/am610/Firecrown_wrapper_TD
+A lightweight wrapper around **Firecrown** workflows for time-delay (TD) cosmology analyses, focused on reproducible execution, configuration management, and cleaner interfaces for iterative scientific work.
 
-# **Firecrown Wrapper Manual for running with Cosmosis for SN Cosmology**
+This repository is intended to make it easier to:
+- define and run TD analysis configurations,
+- standardize execution across environments,
+- and keep scientific pipeline logic transparent and auditable.
 
+---
 
+## Why this repository exists
 
-## **Summary** 
+Running cosmology workflows often involves repeated setup, parameter editing, and orchestration around core analysis tools.  
+This wrapper provides a structured layer around Firecrown so that analyses are easier to:
 
-The Firecrown wrapper is a standalone script which links a Supernova input
-data file to Cosmosis for dark energy parameter estimation via firecrown
-likelihood module. <p style='color:red'>*The wrapper can be used in any system, provided* `Firecrown` *and* `Cosmosis` *are installed in the environment. However, the current version of the* README *is mostly focused on, use in* NERSC Perlmutter LSST DESC *environment.*</p>
+- **reproduce** (explicit environment + configuration),
+- **maintain** (modular code + clear entry points),
+- **extend** (new models/data choices without rewriting everything).
 
-## **Why** 
+---
 
-Firecrown runs in 3 stages, including a data-prep stage into sacc [1] format.
-The firecrown wrapper executes these 3 stages as a single task, making
-firecrown easier to use and easier to embed in pipelines.
+## Features
 
-## **Firecrown Wrapper Flowchart** 
+- Wrapper utilities for Firecrown-based TD workflows.
+- Config-driven execution for analysis runs.
+- Web/UI-related components (JavaScript/CSS/HTML) for interaction or result presentation.
+- Python-first scientific logic and pipeline orchestration.
 
- SN Hubble Diagram (HD) + Covariance Matrix [Input]
- --> Single `sacc` file
-     --> Firecrown Likelihood
-          --> Cosmosis
-	       --> DE Parameter estimation
-	           --> Plots [Output]
+> Language composition (GitHub): Python 35.2%, JavaScript 29.6%, CSS 26.5%, HTML 7.5%.
 
+---
 
-## **Input requirements** 
+## Repository structure
 
-#### Mandatory  :
+> Update this tree to exactly match your repo before sharing.
 
-(1) Input file path to HD and covariance matrix,
+```text
+.
+├── src/                    # Core Python wrapper code (recommended)
+├── scripts/                # Runnable helper scripts / CLI entrypoints
+├── config/                 # Example configuration files
+├── web/                    # Front-end assets (JS/CSS/HTML), if applicable
+├── tests/                  # Unit/integration tests
+├── examples/               # Minimal runnable examples
+├── requirements.txt        # Python dependencies (or environment.yml)
+└── README.md
+```
 
-(2)  Name of HD file and covariance matrix file,
+If your current layout differs, keep this section truthful and concise.
 
-(3) cosmosis input
-	 `ini` file.
+---
 
-Assumption : HD and covariance matrix files are
-	 in the same folder.
+## Requirements
 
-Additional optional attributes
-	 can be seen (in Perlmutter) via the following help command : 
-	 `$TD/SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper
-	 --help`
+- Python **3.10+** (recommended: 3.11)
+- `pip` or `conda/mamba`
+- (Optional) Node.js if front-end build steps are required
 
-#### ENV Requirement : 
-(a) **Perlmutter** :The TD ENV should be active
+---
 
-`source /global/cfs/cdirs/lsst/groups/TD/setup_td.sh`
+## Installation
 
-(b) **Chicago-RCC** : 
+### Option A: pip + virtualenv
 
-(c) **FNAL**  :
-   
+```bash
+git clone https://github.com/am610/Firecrown_wrapper_TD.git
+cd Firecrown_wrapper_TD
 
+python -m venv .venv
+source .venv/bin/activate  # macOS/Linux
+# .venv\Scripts\activate   # Windows PowerShell
 
-## **Installation**		
+pip install -U pip
+pip install -r requirements.txt
+```
 
-	  git clone https://github.com/am610/Firecrown_wrapper_TD.git
-	  cd Firecrown_wrapper_TD/
-   	  pyinstaller Firecrown_wrapper.spec
-	  
-This will create the executable version of the wrapper. If `pyinstaller` is not present, install using `pip` [2].   
+### Option B: conda/mamba (if `environment.yml` is present)
 
-### **Notes** 
+```bash
+git clone https://github.com/am610/Firecrown_wrapper_TD.git
+cd Firecrown_wrapper_TD
+mamba env create -f environment.yml
+mamba activate firecrown-wrapper-td
+```
 
-The wrapper can be used :
+---
 
-(a) with `SNANA` or `DESC
-TD` pipeline's utility function : `submit_batch_jobs.sh` for
-submitting multiple batch job(s).
+## Quickstart
 
-(b) or also as a standalone unit for submitting
-batch job in Perlmutter using `sbatch`.
+> Replace the commands below with your actual entry point(s).
 
+```bash
+# Example: run a baseline configuration
+python scripts/run_analysis.py --config config/baseline.yaml
+```
 
+Expected outcome:
+- analysis runs successfully,
+- output artifacts are written to the configured output directory,
+- logs summarize the selected model/settings.
 
-## **Syntax** (Perlmutter Specific)
+---
 
-(a) To run with `submit_batch_jobs.sh` a separate Input yaml
-	 file is needed suitable for `submit_batch_jobs.sh`. An example
-	 of a test.yaml is below :
+## Minimal example workflow
 
+1. Choose/edit a config file in `config/`.
+2. Run the analysis entrypoint script.
+3. Inspect output summaries/plots/tables.
+4. (Optional) use web components for visualization or interaction.
 
-	  ## YAML begins :
-	  CONFIG:
-	    BATCH_INFO: sbatch
-	    $SBATCH_TEMPLATES/SBATCH_Perlmutter.TEMPLATE 25
-	    JOBNAME: srun -n 2 $TD/SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper
-	    BATCH_WALLTIME: "12:00:00" FIRECROWN_INPUT_FILE:
-	    /global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+submit_batch_jobs/Cosmosis_Input_Scripts/sn_planck.ini
-	    ENV_REQUIRE: FIRECROWN_DIR FIRECROWN_EXAMPLES_DIR CSL_DIR
-	    OUTDIR: output_firecrown_sn_cmb WFITAVG:
-	    - LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ
-	    COVOPT:  ALL NOSYS INPDIR: -
-	    /pscratch/sd/d/desctd/PIPPIN_OUTPUT/PLASTICC_COMBINED_PUBLISHED/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_1/output
-	    -
-	    /pscratch/sd/d/desctd/PIPPIN_OUTPUT/PLASTICC_COMBINED_PUBLISHED/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_2/output
-	  ##END_YAML
+If helpful, include a concrete command+output snippet from one real run.
 
+---
 
-Launch the job : `submit_batch_jobs.sh test.yaml`
+## Testing
 
-*** **In NERSC Perlmutter, a starter kit is available with example inputs in** :
-	 `/global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+submit_batch_jobs`
+> Keep this section aligned with what currently exists.
 
+Run tests with:
 
-(b) To simply run the code as a batch job in Perlmutter the
-	 following example job script can be used as a template :
+```bash
+pytest -q
+```
 
-	  #!/bin/bash
-	  #SBATCH -A m1727
-	  #SBATCH -C cpu
-	  #SBATCH --qos=debug
-	  #SBATCH --time=00:10:00
-	  #SBATCH --nodes=2
-	  #SBATCH --error=perl_firecrown-%j.err
-	  #SBATCH -o perl_firecrown.log
-	  #SBATCH --mail-user=ayanmitra375@gmail.com
-	  #SBATCH -J Firecrown
+If you have only a small test suite, that is still valuable—keep tests focused on core logic and expected behavior.
 
+---
 
-	  NUM_PROCESSES=32
-	  export OMP_NUM_THREADS=16
+## Reproducibility notes
 
-	  #Example 1
-	  # Syntax : srun -u -n ${NUM_PROCESSES}  --cpus-per-task ${OMP_NUM_THREADS} $TD/SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper [Input/Folder/HD/covariance/matrix] [HD.txt] [cov.txt] [cosmosis.ini]
-	  srun -u -n ${NUM_PROCESSES}  --cpus-per-task ${OMP_NUM_THREADS} $TD/SOFTWARE/firecrown_wrapper/dist/Firecrown_wrapper $HOME/Analysis/7_CREATE_COV/LSST_BINNED_COV_BBC_SIMDATA_PHOTOZ_1/output hubble_diagram.txt covsys_000.txt.gz sn_only.ini --summary $PWD/FIRECROWN_OUTPUT/SUMMARY.YAML -O $PWD/FIRECROWN_OUTPUT/
+- Pin dependencies in `requirements.txt` (or lock file / environment file).
+- Keep configuration files under version control.
+- Avoid hard-coded local paths; use config/env variables instead.
+- Record software versions in output metadata when possible.
 
-	  # ## End of file
+---
 
-Save the above code in a file `test.sh` and then from Perlmutter terminal submit the job as : `sbatch test.sh`
+## Scientific/software context
 
+This repository reflects practical research software engineering in cosmology workflows:
+- balancing scientific flexibility with maintainable code,
+- preserving transparent assumptions through config-first design,
+- and enabling repeatable analyses across collaborators and environments.
 
-*Notes : qos = `debug` can be changed to `regular`. `nodes`
-and time can be modified accordingly (as of now Perlmutter's
-maximum time limit is 12 hours). The outputs will be stored
-in `$PWD/FIRECROWN_OUTPUT/`. cosmosis input file shown here is
-`sn_only.ini`, consult cosmosis manual for more information.
-`ini` file should be at the same location as job script.
+---
 
-Example of `lsst_srd_y10` are kept in : 
-`/global/cfs/cdirs/lsst/groups/TD/SN/SNANA/SURVEYS/LSST/ROOT/starterKits/firecrown+sbatch/`
+## Limitations and future improvements
 
-## **Compiling** ---------[**For Developers**]
+Current limitations may include:
+- incomplete test coverage,
+- evolving configuration schema,
+- workflow assumptions specific to current TD use cases.
 
-For regular use in Perlmutter it is not needed to be compiled. Developers can follow as below:
+Planned improvements:
+- expanded test suite and CI checks,
+- clearer typed interfaces and docs,
+- additional example configs and benchmark runs.
 
-	  cd <firecrown_wrapper location>
-	  pyinstaller --onefile Firecrown_wrapper.py
+---
 
-if you get pyinstaller error then, add the following lines in the `Firecrown_wrapper.spec` file :
+## Contributing
 
-	  import sys ;
-	  sys.setrecursionlimit(sys.getrecursionlimit() * 5)
-then run the following again :
+Contributions, issues, and suggestions are welcome.  
+For substantial changes, please open an issue first to discuss scope and design.
 
-	  pyinstaller  Firecrown_wrapper.spec
+---
 
+## License
 
-## **Outputs** 
+Add a license file (recommended: MIT, BSD-3-Clause, or Apache-2.0), then reference it here.
 
-Each successful output will produce the following three
-	 sub folders in the desired location :
-	 
-	 (1) COSMOSIS-CHAINS
-	     Contains the output chain files (name as written in input
-	     `.ini` file) and `INPUT.INFO` file which logs all input
-	     commands.
+Example:
 
-	 (2) ERROR_LOGS
-	     contains the error and log files of each stages. Also
-	     contains files recording the time taken in each stages.
+`This project is licensed under the MIT License - see the LICENSE file for details.`
 
-	 (3) PLOTS
-	     contains the results of the analysis from the chain files
-	     i.e. plots and parameter estimation summary files.
+---
 
+## Citation
 
-	 (4) Summary Yaml file : summarizes the outcomes of each stages
-	 : Fail or Successful. Also lists the main cosmological results
-	 (some fields are still under construction).
+If this repository supports published or publishable scientific work, add `CITATION.cff` so others can cite it properly.
 
+---
 
-## **Example Runtimes** 
+## Contact
 
-         Running the example `sn_planck.ini` for emcee smapler with nsteps = 10, samples = 100,walkers = 24, etc. using submit_batch_jobs.sh
-	 for different number of cores and N (= MPI tasks) specification
-	 
-         Core  N. Time
-         20.   3.  4.755 hrs
-         25.   1.  2.142
-         25    2.  1.964 
-         40    1   1.810
-	 
-********************************************************************
-********************************************************************
-
-
-[1] https://sacc.readthedocs.io/en/latest/intro.html
-
-[2] https://pyinstaller.org/en/stable/installation.html
+Maintainer: **Ayan** (GitHub: [@am610](https://github.com/am610))
