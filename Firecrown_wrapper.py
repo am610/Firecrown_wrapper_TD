@@ -23,7 +23,6 @@ Where:
 This script has been structured into several functions for modularity and readability:
     parse_arguments() - Parses and validates command-line arguments.
     setup_directories() - Sets up the necessary output directories.
-    redirect_stdout() - Redirects stdout to a specified stream.
     run_subprocess() - Runs a command in a subprocess, handling output and errors.
     check_files_and_paths() - Checks if specified files and directories exist.
     run_stages() - Runs the various stages of the analysis.
@@ -31,14 +30,11 @@ This script has been structured into several functions for modularity and readab
     main() - The main function that calls all the above functions in sequence.
 """
 
-
 import argparse
 import os
 import pathlib
 import subprocess
 import sys
-import queue
-import threading
 import time
 import traceback
 import numpy as np
@@ -46,8 +42,8 @@ import pandas as pd
 import yaml
 import logging
 import itertools
-#from mpi4py import MPI
 from contextlib import contextmanager
+
 time0 = time.time()
 
 # Initialize logger
@@ -81,6 +77,7 @@ summary = {
 }
 
 def write_summary():
+    """Write the current summary state to SUMMARY.YAML file."""
     with open('SUMMARY.YAML', 'w') as f:
         yaml.dump(summary, f)
 
@@ -95,6 +92,7 @@ def redirect_stdout(out_file):
         sys.stdout = orig_stdout
 
 def valid_directory_path(string):
+    """Validate that a string is a valid directory path."""
     if not os.path.isdir(string):
         raise argparse.ArgumentTypeError(f"{string} is not a valid directory path")
     return string
@@ -104,9 +102,9 @@ def parse_arguments():
     usage = "Mandatory arguments required in fixed order"
     parser = argparse.ArgumentParser(description=usage)
     parser.add_argument("path", help="Path for the HD and COV", type=valid_directory_path)
-    parser.add_argument("hd", help="HD")
-    parser.add_argument("cov", help="COV")
-    parser.add_argument("ini", help="*.ini file")
+    parser.add_argument("hd", help="HD file name")
+    parser.add_argument("cov", help="COV file name")
+    parser.add_argument("ini", help="*.ini file for COSMOSIS")
     parser.add_argument(
         "-O",
         "--outdir",
@@ -133,10 +131,16 @@ def parse_arguments():
 
 
 def setup_directories(output_path):
-    """Create necessary directories."""
+    """
+    Create necessary output directories for the analysis.
+    
+    Creates subdirectories: ERROR_LOGS, COSMOSIS-CHAINS, PLOTS
+    
+    Args:
+        output_path (str): The base output directory path
+    """
     subdirs = ["ERROR_LOGS", "COSMOSIS-CHAINS", "PLOTS"]
     for subdir in subdirs:
-        # Create the full path                                                                                                                                          
         dir_path = os.path.join(output_path, subdir)
         try:
             os.makedirs(dir_path, exist_ok=True)
@@ -144,66 +148,58 @@ def setup_directories(output_path):
             pass  # Directory already exists
 
 
-def enqueue_output(out, queue):
-    for line in iter(out.readline, b''):
-        queue.put(line)
-    out.close()
-
-def run_subprocess(command, output_file, error_file):
-    process = subprocess.Popen(
-        command,
-        shell=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-    )
-
-    q_stdout = queue.Queue()
-    q_stderr = queue.Queue()
-
-    t_stdout = threading.Thread(target=enqueue_output, args=(process.stdout, q_stdout))
-    t_stdout.daemon = True
-    t_stdout.start()
-
-    t_stderr = threading.Thread(target=enqueue_output, args=(process.stderr, q_stderr))
-    t_stderr.daemon = True
-    t_stderr.start()
-
-    """Run a command in a subprocess, handling output and errors."""
-
-    with open(output_file, "wb") as out_file, open(error_file, "wb") as err_file:
-        while process.poll() is None:
-            while not q_stdout.empty():
-                out_file.write(q_stdout.get())
-            while not q_stderr.empty():
-                err_file.write(q_stderr.get())
-            time.sleep(0.1)
-
-    return process.returncode
-         
-
-'''        
-def run_subprocess(command, output_file, error_file):
-    with open(output_file, "wb") as out_file, open(error_file, "wb") as err_file:
-        process = subprocess.Popen(
-            command,
-            shell=True,
-            text=True,
-            stdout=out_file,
-            stderr=err_file,
-        )
-        process.wait()
-    return process.returncode
-'''
+def run_subprocess(command, output_file, error_file, timeout=3600):
+    """
+    Run a command in a subprocess, capturing output and errors.
+    
+    Args:
+        command (str): The shell command to execute
+        output_file (str): Path to file for stdout
+        error_file (str): Path to file for stderr
+        timeout (int): Maximum seconds to wait for command completion (default: 1 hour)
+    
+    Returns:
+        int: The return code from the subprocess
+        
+    Raises:
+        subprocess.TimeoutExpired: If command exceeds timeout
+    """
+    try:
+        with open(output_file, "w") as out_f, open(error_file, "w") as err_f:
+            process = subprocess.run(
+                command,
+                shell=True,
+                stdout=out_f,
+                stderr=err_f,
+                timeout=timeout,
+                text=True
+            )
+        return process.returncode
+    except subprocess.TimeoutExpired as e:
+        logging.error(f"Command timed out after {timeout} seconds: {command}")
+        raise RuntimeError(f"Subprocess timed out after {timeout}s: {command}") from e
+    except Exception as e:
+        logging.error(f"Subprocess failed with error: {str(e)}")
+        raise
 
 def check_files_and_paths(files, dir_paths):
-    """Check if the specified files and directories exist."""
+    """
+    Check if the specified files and directories exist.
+    
+    Args:
+        files (list): List of file names to check
+        dir_paths (list): List of directory paths to check files in
+        
+    Raises:
+        FileNotFoundError: If any file or directory is missing
+    """
     for dir_path in dir_paths:
         if not os.path.isdir(dir_path):
-            raise FileNotFoundError(f"{dir_path} does not exist!")
+            raise FileNotFoundError(f"Directory does not exist: {dir_path}")
         for file in files:
-            if not os.path.isfile(os.path.join(dir_path, file)):
-                raise FileNotFoundError(f"{file} does not exist in the given location!")
-
+            file_full_path = os.path.join(dir_path, file)
+            if not os.path.isfile(file_full_path):
+                raise FileNotFoundError(f"File not found: {file_full_path}")
 
 
 def FoM(input_file):
@@ -221,23 +217,45 @@ def FoM(input_file):
     -------
     FoM : float
         The Figure of Merit.
+        
+    Raises
+    ------
+    FileNotFoundError: If input file does not exist
+    ValueError: If covariance matrix cannot be extracted
     """
-    a = pd.read_csv(input_file, sep=r"\s+")
+    try:
+        a = pd.read_csv(input_file, sep=r"\s+")
+    except FileNotFoundError:
+        logging.error(f"Covariance file not found: {input_file}")
+        raise
+    except Exception as e:
+        logging.error(f"Error reading covariance file: {str(e)}")
+        raise
+        
     mat = np.asarray(a)
     names = ["cosmological_parameters--w", "cosmological_parameters--wa"]
     ind = []
     FoM_COV = []
+    
     for n in list(a):
         if n == names[0] or n == names[1]:
             N = list(a).index(n)
             ind.append(N)
+    
+    if len(ind) != 2:
+        raise ValueError(f"Expected to find 2 cosmological parameters, found {len(ind)}")
+    
     cov = list(itertools.product(ind, repeat=2))
     for i in cov:
         tmp = mat[i]
         FoM_COV.append(tmp)
     FoM_COV = np.reshape(FoM_COV, (2, 2))
     X = np.linalg.det(FoM_COV)
-    FoM = 1 / np.sqrt(X)
+    
+    if X <= 0:
+        logging.warning(f"Covariance matrix determinant is non-positive: {X}")
+    
+    FoM = 1 / np.sqrt(abs(X))
     return FoM
 
 
@@ -254,87 +272,145 @@ def burnin(chain: str) -> int:
     -------
     int
         The burn-in length, calculated as 15% of the number of steps in the chain.
+        
+    Raises
+    ------
+    FileNotFoundError: If chain file does not exist
     """
     try:
         a = pd.read_csv(chain, comment="#", header=None, sep=r"\s+")
         L = int(0.15 * a.shape[0])
         return L
     except FileNotFoundError:
-        print(f"File not found: {chain}", file=sys.stderr)
+        logging.error(f"Chain file not found: {chain}")
+        raise
+    except Exception as e:
+        logging.error(f"Error reading chain file: {str(e)}")
         raise
 
 
 def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
-    """Run the various stages of the analysis."""
-
-    # Get the rank of the current MPI process
-    # rank = MPI.COMM_WORLD.Get_rank()
-
-    # List to store the commands
+    """
+    Run the various stages of the analysis.
+    
+    Stage 0: Generate SACC file from SN data
+    Stage 1: Run COSMOSIS for parameter estimation
+    Stage 2: Post-process results and generate plots
+    Stage 3: Extract and summarize cosmological parameters
+    
+    Args:
+        path (str): Path to HD and COV files
+        hd (str): HD file name
+        cov (str): COV file name
+        ini (str): COSMOSIS ini file name
+        error_path (str): Path for error/log files
+        output_path (str): Path for COSMOSIS output chains
+        plot_path (str): Path for plots and analysis results
+        
+    Returns:
+        list: List of executed commands
+        
+    Raises:
+        RuntimeError: If any stage fails
+    """
     commands = []
     
-    # Stage 1
+    # Stage 0: Generate SACC data
     summary["STAGE0"] = "STARTED"
     write_summary()
 
-    # Remove any preexisting sacc file
     PWD = os.getcwd()
-    sacc_path_rm = "rm " + os.path.join(PWD, "srd-y1-converted.sacc")
-    job0 = subprocess.Popen(sacc_path_rm, stdout=subprocess.PIPE, shell=True)
-    stdout, stderr = job0.communicate()
+    sacc_file = os.path.join(PWD, "srd-y1-converted.sacc")
+    
+    # Remove any preexisting sacc file
+    try:
+        if os.path.exists(sacc_file):
+            os.remove(sacc_file)
+    except Exception as e:
+        logging.warning(f"Could not remove existing SACC file: {e}")
 
-    stage_1_command = f"python $FIRECROWN_EXAMPLES_DIR/srd_sn/generate_sn_data.py {path} {hd} {cov}"
-    commands.append(f"\n SACC Input Vector: {stage_1_command} \n")
-    returncode = run_subprocess(stage_1_command, f"{error_path}/generate_sn_data_output_{ini}.log", f"{error_path}/generate_sn_data_output_ERROR_{ini}.err")
+    stage_0_command = f"python $FIRECROWN_EXAMPLES_DIR/srd_sn/generate_sn_data.py {path} {hd} {cov}"
+    commands.append(f"\nSACC Input Vector: {stage_0_command}\n")
+    
+    returncode = run_subprocess(
+        stage_0_command, 
+        f"{error_path}/generate_sn_data_output_{ini}.log", 
+        f"{error_path}/generate_sn_data_output_ERROR_{ini}.err"
+    )
+    
     if returncode != 0:
         summary["STAGE0"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
         write_summary()
-        raise RuntimeError("Stage 1 failed. Check generate_sn_data error logs.")
+        raise RuntimeError("Stage 0 (SACC generation) failed. Check generate_sn_data error logs.")
     else:
         summary["STAGE0"] = "SUCCESSFUL"
         write_summary()
+        logging.info("Stage 0 (SACC generation) completed successfully.")
 
-        # Copy srd-y1-converted.sacc to $FIRECROWN_EXAMPLES_DIR/srd_sn/ if stage is successful
-        #copy_command = f"cp srd-y1-converted.sacc $FIRECROWN_EXAMPLES_DIR/srd_sn/"
-        #subprocess.run(copy_command, shell=True, check=True)
-
-
-    # Stage 2
+    # Stage 1: Run COSMOSIS
     summary["STAGE1"] = "STARTED"
     write_summary()
-    stage_2_command = f"cosmosis {ini} -p firecrown_likelihood.sacc_file={os.getcwd()}/srd-y1-converted.sacc output.filename={output_path}/{ini.replace('.ini', '.txt')} --mpi"
-    commands.append(f"\n Cosmosis Input Vector: {stage_2_command} \n")
-    returncode = run_subprocess(stage_2_command, f"{error_path}/COSMOSIS_output_{ini}.log", f"{error_path}/COSMOSIS_output_ERROR_{ini}.err")
+    
+    stage_1_command = (
+        f"cosmosis {ini} "
+        f"-p firecrown_likelihood.sacc_file={os.getcwd()}/srd-y1-converted.sacc "
+        f"output.filename={output_path}/{ini.replace('.ini', '.txt')} "
+        f"--mpi"
+    )
+    commands.append(f"\nCosmosis Input Vector: {stage_1_command}\n")
+    
+    returncode = run_subprocess(
+        stage_1_command, 
+        f"{error_path}/COSMOSIS_output_{ini}.log", 
+        f"{error_path}/COSMOSIS_output_ERROR_{ini}.err"
+    )
+    
     if returncode != 0:
         summary["STAGE1"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
         write_summary()
-        raise RuntimeError("Stage 2 failed. Check COSMOSIS error logs.")
+        raise RuntimeError("Stage 1 (COSMOSIS) failed. Check COSMOSIS error logs.")
     else:
         summary["STAGE1"] = "SUCCESSFUL"
         write_summary()
+        logging.info("Stage 1 (COSMOSIS) completed successfully.")
     
-    # Stage 3
+    # Stage 2: Post-processing
     summary["STAGE2"] = "STARTED"
     write_summary()
+    
     burnpath = os.path.join(output_path, str(ini.replace(".ini", ".txt")))
-    stage_3_command = f"cosmosis-postprocess {output_path}/{ini.replace('.ini', '*.txt')} -o {plot_path} --burn {burnin(burnpath)}"
-    commands.append(f"\n cosmosis-postprocess Input Vector: {stage_3_command}\n")
-    returncode = run_subprocess(stage_3_command, f"{error_path}/PostProcess_output_{ini}.log", f"{error_path}/PostProcess_output_ERROR_{ini}.err")
+    burn_length = burnin(burnpath)
+    
+    stage_2_command = (
+        f"cosmosis-postprocess {output_path}/{ini.replace('.ini', '*.txt')} "
+        f"-o {plot_path} "
+        f"--burn {burn_length}"
+    )
+    commands.append(f"\nCosmosis-postprocess Input Vector: {stage_2_command}\n")
+    
+    returncode = run_subprocess(
+        stage_2_command, 
+        f"{error_path}/PostProcess_output_{ini}.log", 
+        f"{error_path}/PostProcess_output_ERROR_{ini}.err"
+    )
+    
     if returncode != 0:
         summary["STAGE2"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
         write_summary()
-        raise RuntimeError("Stage 3 failed. Check PostProcess error logs.")
+        raise RuntimeError("Stage 2 (Post-processing) failed. Check PostProcess error logs.")
     else:
         summary["STAGE2"] = "SUCCESSFUL"
         write_summary()
-    # Stage 4
+        logging.info("Stage 2 (Post-processing) completed successfully.")
+    
+    # Stage 3: Extract cosmological parameters
     summary["STAGE3"] = "STARTED"
     write_summary()
+    
     try:
-        # Initialize HD_read variable here
         f1 = os.path.join(path, hd)
         HD_read = pd.read_csv(f1, comment="#", sep=r"\s+")
         
@@ -345,10 +421,13 @@ def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
             header=None,
         ).T
         cosmo_params = cosmo_params.T.set_index(0).T
+        
         summary["FoM"] = float(FoM(os.path.join(plot_path, "covmat.txt")))
         summary["Ndof"] = np.shape(HD_read)[0]
-        summary["CPU_MINUTES"] = round((time.time() - time0) / 60, 2)  # in minutes
-        summary["chi2"] = 22  # round(float(CHISQ.ch(COSMOSIS_PATH,ini)),3)  #22
+        summary["CPU_MINUTES"] = round((time.time() - time0) / 60, 2)
+        
+        # TODO: Fix chi2 calculation. Currently hardcoded to 22 pending CHISQ module integration.
+        summary["chi2"] = None  # Placeholder - requires CHISQ module implementation
         summary["sigint"] = 0.0
         summary["label"] = "none"
         summary["BLIND"] = 0
@@ -358,14 +437,18 @@ def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
         summary["wa"] = cosmo_params["cosmological_parameters--wa"].iloc[0]
         summary["wasig_marg"] = cosmo_params["cosmological_parameters--wa"].iloc[1]
         summary["OM"] = cosmo_params["cosmological_parameters--omega_m"].iloc[0]
-        summary["OMsig_marg"] = cosmo_params["cosmological_parameters--omega_m"].iloc[ 1]
+        summary["OMsig_marg"] = cosmo_params["cosmological_parameters--omega_m"].iloc[1]
         summary["STAGE3"] = "SUCCESSFUL"
         write_summary()
+        logging.info("Stage 3 (Parameter extraction) completed successfully.")
+        
     except Exception as e:
         summary["STAGE3"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
         write_summary()
-        raise RuntimeError(f"Stage 4 failed with error: {str(e)}")
+        logging.error(f"Stage 3 failed with error: {str(e)}")
+        raise RuntimeError(f"Stage 3 (Parameter extraction) failed: {str(e)}") from e
+    
     return commands
 
 def main():
@@ -382,21 +465,25 @@ def main():
 
     # Check if files and paths exist
     check_files_and_paths([args.hd, args.cov], [args.path])
-    if (os.path.split(args.ini)[0] == ''):
+    
+    if os.path.split(args.ini)[0] == '':
         ini_path = './'
+    else:
+        ini_path = os.path.split(args.ini)[0]
+    
     check_files_and_paths([os.path.split(args.ini)[1]], [ini_path])
+    
     # Construct paths for error logs, output, and plots
-    error_path = os.path.join(args.outdir , "ERROR_LOGS")
-    output_path = os.path.join(args.outdir , "COSMOSIS-CHAINS")
-    plot_path = os.path.join(args.outdir , "PLOTS")
+    error_path = os.path.join(args.outdir, "ERROR_LOGS")
+    output_path = os.path.join(args.outdir, "COSMOSIS-CHAINS")
+    plot_path = os.path.join(args.outdir, "PLOTS")
 
-    #print("XXX",args.path, args.hd, args.cov, args.ini,error_path, output_path, plot_path)
     # Write to INPUT.INFO file
     with open(os.path.join(error_path, 'INPUT.INFO'), 'w') as f:
-        f.write('STAGE 0 = ALL PATH AND FILES IN ARGUMENTS CHECK\n')
-        f.write('STAGE 1 = generate_sn_data.py\n')
-        f.write('STAGE 2 = COSMOSIS\n')
-        f.write('STAGE 3 = POST PROCESSING (PLOT)\n\n')
+        f.write('STAGE 0 = Generate SACC file from SN data\n')
+        f.write('STAGE 1 = COSMOSIS parameter estimation\n')
+        f.write('STAGE 2 = POST PROCESSING (PLOT)\n')
+        f.write('STAGE 3 = Extract cosmological parameters\n\n')
         f.write('#Required Info\n')
         f.write(f'CWR: {os.getcwd()}\n')
         f.write(f'ARG_LIST: {sys.argv}\n')
@@ -406,6 +493,7 @@ def main():
     # Run the various stages of the analysis
     try:
         commands = run_stages(args.path, args.hd, args.cov, args.ini, error_path, output_path, plot_path)
+        
         # Remove duplicates from the command list
         commands = list(set(commands))
         
@@ -414,14 +502,16 @@ def main():
             for command in commands:
                 f.write(f"{command}\n")
         
+        print("All stages completed successfully.")
+        logging.info("Pipeline execution completed successfully.")
+        
     except Exception as e:
         traceback_str = traceback.format_exc()
         print(f"An error occurred: {e}", file=sys.stderr)
         traceback.print_exc()
         print(traceback_str, file=sys.stderr)
+        logging.error(f"Pipeline failed: {traceback_str}")
         sys.exit(1)
-
-    print("All stages completed successfully.")
 
 if __name__ == "__main__":
     main()
