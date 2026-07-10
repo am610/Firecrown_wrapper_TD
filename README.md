@@ -1,121 +1,166 @@
 # Firecrown Wrapper (TD)
 
-A lightweight wrapper around **Firecrown** workflows for time-delay (TD) cosmology analyses, focused on reproducible execution, configuration management, and cleaner interfaces for iterative scientific work.
+A lightweight wrapper around **Firecrown** workflows for supernova time-domain cosmology analyses with **COSMOSIS**. It streamlines the end-to-end pipeline from Hubble diagram and covariance inputs to SACC generation, parameter estimation, post-processing, plots, and summary outputs.
 
 This repository is intended to make it easier to:
-- define and run TD analysis configurations,
-- standardize execution across environments,
-- and keep scientific pipeline logic transparent and auditable.
+- run Firecrown/COSMOSIS analyses from a single command,
+- standardize execution and output layout across environments,
+- and keep the pipeline logic transparent and easier to embed in larger workflows.
 
 ---
 
 ## Why this repository exists
 
-Running cosmology workflows often involves repeated setup, parameter editing, and orchestration around core analysis tools.  
-This wrapper provides a structured layer around Firecrown so that analyses are easier to:
+Running Firecrown for supernova cosmology involves multiple stages, including data preparation into **SACC** format, COSMOSIS parameter estimation, and post-processing of the resulting chains. This wrapper executes those stages as a single task so analyses are easier to:
 
-- **reproduce** (explicit environment + configuration),
-- **maintain** (modular code + clear entry points),
-- **extend** (new models/data choices without rewriting everything).
+- **reproduce** through a consistent command-line interface,
+- **maintain** through modular Python functions and structured outputs,
+- **embed** in batch systems and larger pipeline tooling such as `submit_batch_jobs.sh`.
 
 ---
 
-## Features
+## What it does
 
-- Wrapper utilities for Firecrown-based TD workflows.
-- Config-driven execution for analysis runs.
-- Web/UI-related components (JavaScript/CSS/HTML) for interaction or result presentation.
-- Python-first scientific logic and pipeline orchestration.
+The main wrapper script, `Firecrown_wrapper.py`, orchestrates four stages:
 
-> Language composition (GitHub): Python 35.2%, JavaScript 29.6%, CSS 26.5%, HTML 7.5%.
+1. **Stage 0:** generate a SACC file from a supernova Hubble diagram and covariance matrix using Firecrown example tooling,
+2. **Stage 1:** run **COSMOSIS** with the generated SACC file,
+3. **Stage 2:** run `cosmosis-postprocess` on the output chains,
+4. **Stage 3:** extract cosmological summary values and write `SUMMARY.YAML`.
+
+The code also includes:
+- a reusable subprocess execution helper in `subprocess_executor.py`,
+- tests in `test_Firecrown_wrapper.py`,
+- a PyInstaller spec for building a standalone executable,
+- and Sphinx documentation scaffolding.
 
 ---
 
 ## Repository structure
 
-> Update this tree to exactly match your repo before sharing.
-
 ```text
 .
-├── src/                    # Core Python wrapper code (recommended)
-├── scripts/                # Runnable helper scripts / CLI entrypoints
-├── config/                 # Example configuration files
-├── web/                    # Front-end assets (JS/CSS/HTML), if applicable
-├── tests/                  # Unit/integration tests
-├── examples/               # Minimal runnable examples
-├── requirements.txt        # Python dependencies (or environment.yml)
-└── README.md
+├── Firecrown_wrapper.py        # Main CLI wrapper for the full analysis pipeline
+├── subprocess_executor.py      # Subprocess execution, logging, timeout handling
+├── test_Firecrown_wrapper.py   # Unit and integration tests for the wrapper
+├── CHISQ.py                    # Auxiliary χ²-related postprocessing code
+├── Firecrown_wrapper.spec      # PyInstaller spec for building an executable
+├── requirements.txt            # Minimal Python dependencies used directly here
+├── README.md                   # Project overview and usage
+├── conf.py                     # Sphinx documentation configuration
+├── index.rst                   # Sphinx documentation index
+├── Makefile                    # Sphinx documentation build helper
+├── make.bat                    # Windows Sphinx build helper
+├── .github/workflows/          # GitHub Actions workflows for linting/testing
+└── _build/                     # Generated documentation artifacts
 ```
-
-If your current layout differs, keep this section truthful and concise.
 
 ---
 
 ## Requirements
 
-- Python **3.10+** (recommended: 3.11)
-- `pip` or `conda/mamba`
-- (Optional) Node.js if front-end build steps are required
+This wrapper assumes that **Firecrown** and **COSMOSIS** are already installed and available in the active environment.
+
+Python packages used directly by this repository are listed in `requirements.txt`:
+
+```bash
+pip install -r requirements.txt
+```
+
+Current listed dependencies:
+- `pandas`
+- `numpy`
+- `pyyaml`
+
+You may also need environment-specific tooling such as:
+- `cosmosis`
+- `cosmosis-postprocess`
+- Firecrown example data/scripts via `$FIRECROWN_EXAMPLES_DIR`
+- `pytest` for tests
+- `flake8` if you want to run the same lint checks as GitHub Actions
 
 ---
 
 ## Installation
 
-### Option A: pip + virtualenv
+Clone the repository:
 
 ```bash
 git clone https://github.com/am610/Firecrown_wrapper_TD.git
 cd Firecrown_wrapper_TD
+```
 
-python -m venv .venv
-source .venv/bin/activate  # macOS/Linux
-# .venv\Scripts\activate   # Windows PowerShell
+To install the direct Python dependencies for local development/testing:
 
-pip install -U pip
+```bash
 pip install -r requirements.txt
+pip install pytest flake8
 ```
 
-### Option B: conda/mamba (if `environment.yml` is present)
+To build a standalone executable version of the wrapper:
 
 ```bash
-git clone https://github.com/am610/Firecrown_wrapper_TD.git
-cd Firecrown_wrapper_TD
-mamba env create -f environment.yml
-mamba activate firecrown-wrapper-td
+pyinstaller Firecrown_wrapper.spec
 ```
+
+This creates an executable named `Firecrown_wrapper` based on `Firecrown_wrapper.py`.
 
 ---
 
-## Quickstart
+## How to run
 
-> Replace the commands below with your actual entry point(s).
+The main entry point is the wrapper script itself:
 
 ```bash
-# Example: run a baseline configuration
-python scripts/run_analysis.py --config config/baseline.yaml
+python Firecrown_wrapper.py <path> <hd> <cov> <ini> [-O <outdir>] [-p <param>] [-s <summary>]
 ```
 
-Expected outcome:
-- analysis runs successfully,
-- output artifacts are written to the configured output directory,
-- logs summarize the selected model/settings.
+Where:
+- `<path>` is the directory containing the Hubble diagram and covariance files,
+- `<hd>` is the Hubble diagram filename,
+- `<cov>` is the covariance filename,
+- `<ini>` is the COSMOSIS `.ini` input file,
+- `-O/--outdir` optionally sets the output directory,
+- `-p/--param` optionally overrides COSMOSIS parameter values,
+- `-s/--summary` optionally sets the output `SUMMARY.YAML` path.
+
+Example:
+
+```bash
+python Firecrown_wrapper.py /path/to/input HD.txt cov.txt sn_only.ini -O /path/to/output
+```
+
+The script will create the following output subdirectories under the selected output path:
+- `ERROR_LOGS`
+- `COSMOSIS-CHAINS`
+- `PLOTS`
+
+It also writes a `SUMMARY.YAML` file with stage status and extracted cosmological summary values.
 
 ---
 
-## Minimal example workflow
+## Batch usage
 
-1. Choose/edit a config file in `config/`.
-2. Run the analysis entrypoint script.
-3. Inspect output summaries/plots/tables.
-4. (Optional) use web components for visualization or interaction.
+This wrapper was designed to work well in HPC and pipeline environments.
 
-If helpful, include a concrete command+output snippet from one real run.
+Two supported usage patterns documented in the original project are:
+- use through `submit_batch_jobs.sh` in SNANA / DESC TD workflows,
+- or submit directly as a batch job in NERSC Perlmutter via `sbatch`.
+
+The repository does not include the external pipeline utilities themselves, but the wrapper is structured to integrate with them.
 
 ---
 
 ## Testing
 
-> Keep this section aligned with what currently exists.
+The repository includes a pytest suite in `test_Firecrown_wrapper.py` covering:
+- argument parsing and validation,
+- output directory setup,
+- file/path validation,
+- subprocess execution behavior,
+- burn-in calculation,
+- figure-of-merit calculation,
+- and some end-to-end integration-style checks.
 
 Run tests with:
 
@@ -123,65 +168,19 @@ Run tests with:
 pytest -q
 ```
 
-If you have only a small test suite, that is still valuable—keep tests focused on core logic and expected behavior.
+GitHub Actions workflows are also present for automated linting and testing on `main`.
 
 ---
 
-## Reproducibility notes
+## Notes and current limitations
 
-- Pin dependencies in `requirements.txt` (or lock file / environment file).
-- Keep configuration files under version control.
-- Avoid hard-coded local paths; use config/env variables instead.
-- Record software versions in output metadata when possible.
-
----
-
-## Scientific/software context
-
-This repository reflects practical research software engineering in cosmology workflows:
-- balancing scientific flexibility with maintainable code,
-- preserving transparent assumptions through config-first design,
-- and enabling repeatable analyses across collaborators and environments.
-
----
-
-## Limitations and future improvements
-
-Current limitations may include:
-- incomplete test coverage,
-- evolving configuration schema,
-- workflow assumptions specific to current TD use cases.
-
-Planned improvements:
-- expanded test suite and CI checks,
-- clearer typed interfaces and docs,
-- additional example configs and benchmark runs.
-
----
-
-## Contributing
-
-Contributions, issues, and suggestions are welcome.  
-For substantial changes, please open an issue first to discuss scope and design.
-
----
-
-## License
-
-Add a license file (recommended: MIT, BSD-3-Clause, or Apache-2.0), then reference it here.
-
-Example:
-
-`This project is licensed under the MIT License - see the LICENSE file for details.`
-
----
-
-## Citation
-
-If this repository supports published or publishable scientific work, add `CITATION.cff` so others can cite it properly.
+- The wrapper expects external Firecrown/COSMOSIS tooling to already be installed and configured.
+- Stage 0 depends on `$FIRECROWN_EXAMPLES_DIR/srd_sn/generate_sn_data.py`.
+- The `CHISQ.py` module exists, but `chi2` is currently left as a placeholder in `Firecrown_wrapper.py`.
+- The repository includes generated/documentation helper files such as `_build/`, `conf.py`, `index.rst`, and Sphinx makefiles.
 
 ---
 
 ## Contact
 
-Maintainer: **Ayan** (GitHub: [@am610](https://github.com/am610))
+Maintainer: **Ayan Mitra** (GitHub: [@am610](https://github.com/am610))
