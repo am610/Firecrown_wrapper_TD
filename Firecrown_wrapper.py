@@ -252,6 +252,9 @@ def burnin(chain: str) -> int:
     except FileNotFoundError:
         logging.error(f"Chain file not found: {chain}")
         raise
+    except pd.errors.EmptyDataError:
+        logging.warning(f"Chain file is empty: {chain}")
+        return 0
     except Exception as e:
         logging.error(f"Error reading chain file: {str(e)}")
         raise
