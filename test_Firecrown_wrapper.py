@@ -5,7 +5,7 @@ Tests cover:
 - Argument parsing and validation
 - Directory setup
 - File and path validation
-- Subprocess execution
+- Subprocess execution via SubprocessExecutor
 - Math functions (FoM, burnin)
 - Error handling and edge cases
 """
@@ -22,12 +22,12 @@ from Firecrown_wrapper import (
     parse_arguments,
     setup_directories,
     redirect_stdout,
-    run_subprocess,
     check_files_and_paths,
     FoM,
     burnin,
     valid_directory_path,
 )
+from subprocess_executor import SubprocessExecutor, get_executor
 
 
 class TestArgumentParsing:
@@ -134,51 +134,109 @@ class TestStdoutRedirection:
         assert sys.stdout == original_stdout
 
 
-class TestSubprocessExecution:
-    """Test subprocess execution and error handling."""
+class TestSubprocessExecutor:
+    """Test SubprocessExecutor class."""
 
-    def test_run_subprocess_success(self, tmp_path):
-        """Test successful subprocess execution."""
+    def test_executor_initialization(self):
+        """Test SubprocessExecutor initialization."""
+        executor = get_executor(timeout=3600)
+        assert executor.default_timeout == 3600
+
+    def test_executor_custom_timeout(self):
+        """Test SubprocessExecutor with custom timeout."""
+        executor = get_executor(timeout=1800)
+        assert executor.default_timeout == 1800
+
+    def test_executor_run_success(self, tmp_path):
+        """Test successful subprocess execution via executor."""
+        executor = get_executor()
         output_file = tmp_path / "output.txt"
         error_file = tmp_path / "error.txt"
         
-        returncode = run_subprocess(
+        returncode = executor.run(
             "echo 'success'",
             str(output_file),
             str(error_file),
-            timeout=10
+            description="Test successful execution"
         )
         
         assert returncode == 0
         assert output_file.exists()
         assert error_file.exists()
 
-    def test_run_subprocess_failure(self, tmp_path):
-        """Test subprocess failure handling."""
+    def test_executor_run_failure(self, tmp_path):
+        """Test subprocess failure handling via executor."""
+        executor = get_executor()
         output_file = tmp_path / "output.txt"
         error_file = tmp_path / "error.txt"
         
-        returncode = run_subprocess(
+        returncode = executor.run(
             "false",  # Unix command that always fails
             str(output_file),
             str(error_file),
-            timeout=10
+            description="Test failure handling"
         )
         
         assert returncode != 0
 
-    def test_run_subprocess_timeout(self, tmp_path):
-        """Test subprocess timeout handling."""
+    def test_executor_run_timeout(self, tmp_path):
+        """Test subprocess timeout handling via executor."""
+        executor = get_executor()
         output_file = tmp_path / "output.txt"
         error_file = tmp_path / "error.txt"
         
         with pytest.raises(RuntimeError, match="timed out"):
-            run_subprocess(
+            executor.run(
                 "sleep 100",  # Long-running command
                 str(output_file),
                 str(error_file),
-                timeout=1
+                timeout=1,
+                description="Test timeout handling"
             )
+
+    def test_executor_run_pipeline_success(self, tmp_path):
+        """Test successful pipeline execution via executor."""
+        executor = get_executor()
+        
+        commands = [
+            {'command': 'echo "stage1"', 'description': 'Stage 1'},
+            {'command': 'echo "stage2"', 'description': 'Stage 2'}
+        ]
+        
+        success_results, failure_results = executor.run_pipeline(
+            commands,
+            str(tmp_path),
+            str(tmp_path),
+            timeout=10
+        )
+        
+        assert len(success_results) == 2
+        assert len(failure_results) == 0
+        assert success_results[0]['index'] == 0
+        assert success_results[1]['index'] == 1
+
+    def test_executor_run_pipeline_with_failure(self, tmp_path):
+        """Test pipeline with failure stopping execution."""
+        executor = get_executor()
+        
+        commands = [
+            {'command': 'echo "stage1"', 'description': 'Stage 1'},
+            {'command': 'false', 'description': 'Stage 2 - fails'},
+            {'command': 'echo "stage3"', 'description': 'Stage 3'}
+        ]
+        
+        success_results, failure_results = executor.run_pipeline(
+            commands,
+            str(tmp_path),
+            str(tmp_path),
+            timeout=10,
+            stop_on_failure=True
+        )
+        
+        assert len(success_results) == 1
+        assert len(failure_results) == 1
+        # Pipeline should stop after first failure
+        assert failure_results[0]['index'] == 1
 
 
 class TestFilePathValidation:
@@ -354,6 +412,26 @@ class TestIntegration:
             ["hubble.txt", "covariance.txt"],
             [str(data_dir)]
         )
+
+    def test_integration_executor_usage(self, tmp_path):
+        """Test SubprocessExecutor integration in workflow."""
+        executor = get_executor()
+        
+        # Simulate a pipeline with multiple stages
+        commands = [
+            {'command': 'echo "Generating data"', 'description': 'Stage 0: Generate SACC'},
+            {'command': 'echo "Running analysis"', 'description': 'Stage 1: COSMOSIS'},
+        ]
+        
+        success_results, failure_results = executor.run_pipeline(
+            commands,
+            str(tmp_path),
+            str(tmp_path),
+            timeout=10
+        )
+        
+        assert len(success_results) == 2
+        assert len(failure_results) == 0
 
 
 if __name__ == "__main__":
