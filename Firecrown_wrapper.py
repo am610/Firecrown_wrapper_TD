@@ -23,17 +23,18 @@ Where:
 This script has been structured into several functions for modularity and readability:
     parse_arguments() - Parses and validates command-line arguments.
     setup_directories() - Sets up the necessary output directories.
-    run_subprocess() - Runs a command in a subprocess, handling output and errors.
     check_files_and_paths() - Checks if specified files and directories exist.
     run_stages() - Runs the various stages of the analysis.
     burnin() - Calculates the burn-in length for a MCMC chain.
     main() - The main function that calls all the above functions in sequence.
+
+The subprocess execution is handled by the SubprocessExecutor module for
+consistent error handling, logging, and timeout management.
 """
 
 import argparse
 import os
 import pathlib
-import subprocess
 import sys
 import time
 import traceback
@@ -43,6 +44,7 @@ import yaml
 import logging
 import itertools
 from contextlib import contextmanager
+from subprocess_executor import get_executor
 
 time0 = time.time()
 
@@ -147,40 +149,6 @@ def setup_directories(output_path):
         except FileExistsError:
             pass  # Directory already exists
 
-
-def run_subprocess(command, output_file, error_file, timeout=3600):
-    """
-    Run a command in a subprocess, capturing output and errors.
-    
-    Args:
-        command (str): The shell command to execute
-        output_file (str): Path to file for stdout
-        error_file (str): Path to file for stderr
-        timeout (int): Maximum seconds to wait for command completion (default: 1 hour)
-    
-    Returns:
-        int: The return code from the subprocess
-        
-    Raises:
-        subprocess.TimeoutExpired: If command exceeds timeout
-    """
-    try:
-        with open(output_file, "w") as out_f, open(error_file, "w") as err_f:
-            process = subprocess.run(
-                command,
-                shell=True,
-                stdout=out_f,
-                stderr=err_f,
-                timeout=timeout,
-                text=True
-            )
-        return process.returncode
-    except subprocess.TimeoutExpired as e:
-        logging.error(f"Command timed out after {timeout} seconds: {command}")
-        raise RuntimeError(f"Subprocess timed out after {timeout}s: {command}") from e
-    except Exception as e:
-        logging.error(f"Subprocess failed with error: {str(e)}")
-        raise
 
 def check_files_and_paths(files, dir_paths):
     """
@@ -291,7 +259,7 @@ def burnin(chain: str) -> int:
 
 def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
     """
-    Run the various stages of the analysis.
+    Run the various stages of the analysis using SubprocessExecutor.
     
     Stage 0: Generate SACC file from SN data
     Stage 1: Run COSMOSIS for parameter estimation
@@ -313,6 +281,8 @@ def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
     Raises:
         RuntimeError: If any stage fails
     """
+    # Initialize subprocess executor with 1-hour timeout
+    executor = get_executor(timeout=3600)
     commands = []
     
     # Stage 0: Generate SACC data
@@ -332,21 +302,28 @@ def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
     stage_0_command = f"python $FIRECROWN_EXAMPLES_DIR/srd_sn/generate_sn_data.py {path} {hd} {cov}"
     commands.append(f"\nSACC Input Vector: {stage_0_command}\n")
     
-    returncode = run_subprocess(
-        stage_0_command, 
-        f"{error_path}/generate_sn_data_output_{ini}.log", 
-        f"{error_path}/generate_sn_data_output_ERROR_{ini}.err"
-    )
-    
-    if returncode != 0:
+    try:
+        returncode = executor.run(
+            stage_0_command, 
+            f"{error_path}/generate_sn_data_output_{ini}.log", 
+            f"{error_path}/generate_sn_data_output_ERROR_{ini}.err",
+            description="Stage 0: Generate SACC file from SN data"
+        )
+        
+        if returncode != 0:
+            summary["STAGE0"] = "FAILED"
+            summary["ABORT_IF_ZERO"] = 0
+            write_summary()
+            raise RuntimeError("Stage 0 (SACC generation) failed. Check generate_sn_data error logs.")
+        else:
+            summary["STAGE0"] = "SUCCESSFUL"
+            write_summary()
+            logging.info("Stage 0 (SACC generation) completed successfully.")
+    except RuntimeError as e:
         summary["STAGE0"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
         write_summary()
-        raise RuntimeError("Stage 0 (SACC generation) failed. Check generate_sn_data error logs.")
-    else:
-        summary["STAGE0"] = "SUCCESSFUL"
-        write_summary()
-        logging.info("Stage 0 (SACC generation) completed successfully.")
+        raise
 
     # Stage 1: Run COSMOSIS
     summary["STAGE1"] = "STARTED"
@@ -360,21 +337,28 @@ def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
     )
     commands.append(f"\nCosmosis Input Vector: {stage_1_command}\n")
     
-    returncode = run_subprocess(
-        stage_1_command, 
-        f"{error_path}/COSMOSIS_output_{ini}.log", 
-        f"{error_path}/COSMOSIS_output_ERROR_{ini}.err"
-    )
-    
-    if returncode != 0:
+    try:
+        returncode = executor.run(
+            stage_1_command, 
+            f"{error_path}/COSMOSIS_output_{ini}.log", 
+            f"{error_path}/COSMOSIS_output_ERROR_{ini}.err",
+            description="Stage 1: Run COSMOSIS for parameter estimation"
+        )
+        
+        if returncode != 0:
+            summary["STAGE1"] = "FAILED"
+            summary["ABORT_IF_ZERO"] = 0
+            write_summary()
+            raise RuntimeError("Stage 1 (COSMOSIS) failed. Check COSMOSIS error logs.")
+        else:
+            summary["STAGE1"] = "SUCCESSFUL"
+            write_summary()
+            logging.info("Stage 1 (COSMOSIS) completed successfully.")
+    except RuntimeError as e:
         summary["STAGE1"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
         write_summary()
-        raise RuntimeError("Stage 1 (COSMOSIS) failed. Check COSMOSIS error logs.")
-    else:
-        summary["STAGE1"] = "SUCCESSFUL"
-        write_summary()
-        logging.info("Stage 1 (COSMOSIS) completed successfully.")
+        raise
     
     # Stage 2: Post-processing
     summary["STAGE2"] = "STARTED"
@@ -390,21 +374,28 @@ def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
     )
     commands.append(f"\nCosmosis-postprocess Input Vector: {stage_2_command}\n")
     
-    returncode = run_subprocess(
-        stage_2_command, 
-        f"{error_path}/PostProcess_output_{ini}.log", 
-        f"{error_path}/PostProcess_output_ERROR_{ini}.err"
-    )
-    
-    if returncode != 0:
+    try:
+        returncode = executor.run(
+            stage_2_command, 
+            f"{error_path}/PostProcess_output_{ini}.log", 
+            f"{error_path}/PostProcess_output_ERROR_{ini}.err",
+            description="Stage 2: Post-process results and generate plots"
+        )
+        
+        if returncode != 0:
+            summary["STAGE2"] = "FAILED"
+            summary["ABORT_IF_ZERO"] = 0
+            write_summary()
+            raise RuntimeError("Stage 2 (Post-processing) failed. Check PostProcess error logs.")
+        else:
+            summary["STAGE2"] = "SUCCESSFUL"
+            write_summary()
+            logging.info("Stage 2 (Post-processing) completed successfully.")
+    except RuntimeError as e:
         summary["STAGE2"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
         write_summary()
-        raise RuntimeError("Stage 2 (Post-processing) failed. Check PostProcess error logs.")
-    else:
-        summary["STAGE2"] = "SUCCESSFUL"
-        write_summary()
-        logging.info("Stage 2 (Post-processing) completed successfully.")
+        raise
     
     # Stage 3: Extract cosmological parameters
     summary["STAGE3"] = "STARTED"
