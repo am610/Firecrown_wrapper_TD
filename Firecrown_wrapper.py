@@ -96,8 +96,7 @@ def redirect_stdout(out_file):
 
 def valid_directory_path(string):
     if not os.path.isdir(string):
-        #raise argparse.ArgumentTypeError(f"{string} is not a valid directory path")
-        os.makedirs(string, exist_ok=True)
+        raise argparse.ArgumentTypeError(f"{string} is not a valid directory path")
     return string
         
 def parse_arguments():
@@ -180,7 +179,7 @@ def run_subprocess(command, output_file, error_file):
             time.sleep(0.1)
 
     return process.returncode
-        
+         
 
 '''        
 def run_subprocess(command, output_file, error_file):
