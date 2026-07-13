@@ -10,14 +10,16 @@ Tests cover:
 - Error handling and edge cases
 """
 
-import tempfile
+import argparse
+from pathlib import Path
+import sys
+
 import pytest
 import pandas as pd
 import numpy as np
-import os
-import sys
-import argparse
-from unittest.mock import patch, MagicMock
+import yaml
+from unittest.mock import patch
+import Firecrown_wrapper as wrapper
 from Firecrown_wrapper import (
     parse_arguments,
     setup_directories,
@@ -26,8 +28,9 @@ from Firecrown_wrapper import (
     FoM,
     burnin,
     valid_directory_path,
+    write_summary,
 )
-from subprocess_executor import SubprocessExecutor, get_executor
+from subprocess_executor import get_executor
 
 
 class TestArgumentParsing:
@@ -77,6 +80,24 @@ class TestArgumentParsing:
             args = parse_arguments()
             assert args.param == 'param.value=42'
             assert args.summary == 'custom_summary.yaml'
+
+    def test_write_summary_respects_configured_summary_path(self, tmp_path):
+        """Test that write_summary writes to the configured summary path."""
+        summary_path = tmp_path / "custom_summary.yaml"
+        previous_summary_path = wrapper.SUMMARY_PATH
+        previous_stage0 = wrapper.summary["STAGE0"]
+
+        try:
+            wrapper.SUMMARY_PATH = Path(summary_path)
+            wrapper.summary["STAGE0"] = "TESTING"
+            write_summary()
+
+            with open(summary_path, "r", encoding="utf-8") as handle:
+                loaded = yaml.safe_load(handle)
+            assert loaded["STAGE0"] == "TESTING"
+        finally:
+            wrapper.SUMMARY_PATH = previous_summary_path
+            wrapper.summary["STAGE0"] = previous_stage0
 
 
 class TestDirectorySetup:
@@ -171,7 +192,7 @@ class TestSubprocessExecutor:
         error_file = tmp_path / "error.txt"
         
         returncode = executor.run(
-            "false",  # Unix command that always fails
+            f"{sys.executable} -c \"import sys; sys.exit(1)\"",
             str(output_file),
             str(error_file),
             description="Test failure handling"
@@ -187,7 +208,7 @@ class TestSubprocessExecutor:
         
         with pytest.raises(RuntimeError, match="timed out"):
             executor.run(
-                "sleep 100",  # Long-running command
+                f"{sys.executable} -c \"import time; time.sleep(100)\"",
                 str(output_file),
                 str(error_file),
                 timeout=1,
@@ -221,7 +242,7 @@ class TestSubprocessExecutor:
         
         commands = [
             {'command': 'echo "stage1"', 'description': 'Stage 1'},
-            {'command': 'false', 'description': 'Stage 2 - fails'},
+            {'command': f'{sys.executable} -c "import sys; sys.exit(1)"', 'description': 'Stage 2 - fails'},
             {'command': 'echo "stage3"', 'description': 'Stage 3'}
         ]
         

@@ -1,39 +1,51 @@
-import numpy as np
-import pandas as pd
-from cosmosis.postprocess import parser
-from cosmosis.postprocessing.inputs import read_input
-from cosmosis.postprocessing.postprocess import postprocessor_for_sampler
-from cosmosis.postprocessing.plots import (
-    MetropolisHastingsPlots2D,
-    MetropolisHastingsPlots1D,
-)
-import os
+"""Compute chi-square summary values from COSMOSIS chain outputs."""
+
+from pathlib import Path
 import csv
-import warnings
 
-warnings.filterwarnings("ignore")
-
-
-def convert(lst):
-    return lst[0].split()
+import numpy as np
+from cosmosis.postprocessing.inputs import read_input
+from cosmosis.postprocessing.plots import MetropolisHastingsPlots1D
+from cosmosis.postprocessing.postprocess import postprocessor_for_sampler
 
 
-def ch(Path, Ini):
-    Burnin = 10  # token value
-    path = Path
-    sampler, ini = read_input(Ini)
-    os.makedirs(path, exist_ok=True)
-    proc = postprocessor_for_sampler(sampler)(
-        ini, Ini[:-4], 0, burn=Burnin, no_2d=False
+def _split_header_tokens(raw_header: list[str]) -> list[str]:
+    """Return whitespace-delimited tokens from the first header row."""
+    return raw_header[0].split()
+
+
+def ch(path: str, ini_file: str) -> float:
+    """Compute chi-square from a COSMOSIS run output.
+
+    Args:
+        path: Directory containing the COSMOSIS output text file.
+        ini_file: COSMOSIS ini file path.
+
+    Returns:
+        Chi-square value computed from the reduced chain column.
+    """
+    burn_in = 10  # token value
+    output_dir = Path(path)
+    ini_path = Path(ini_file)
+    sampler, ini_config = read_input(ini_file)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    postprocessor = postprocessor_for_sampler(sampler)(
+        ini_config,
+        ini_path.stem,
+        0,
+        burn=burn_in,
+        no_2d=False,
     )
-    # ---------------------------------------------------
-    with open(Path + Ini.replace(".ini", ".txt")) as f:
-        reader = csv.reader(f)
-        row1 = next(reader)  # gets the first line
-    row1 = [word.replace("\t", "  ") for word in row1]
-    row1 = [word.replace("#", "  ") for word in row1]
-    row1 = convert(row1)
-    plotter = MetropolisHastingsPlots1D(proc)
-    x = plotter.reduced_col(row1[-1])
-    Chisquare = -2 * np.min(x)
-    return Chisquare
+
+    txt_path = output_dir / f"{ini_path.stem}.txt"
+    with txt_path.open() as chain_file:
+        reader = csv.reader(chain_file)
+        row = next(reader)
+    row = [word.replace("\t", "  ") for word in row]
+    row = [word.replace("#", "  ") for word in row]
+    header_tokens = _split_header_tokens(row)
+
+    plotter = MetropolisHastingsPlots1D(postprocessor)
+    reduced_column = plotter.reduced_col(header_tokens[-1])
+    chi_square = -2 * np.min(reduced_column)
+    return float(chi_square)
