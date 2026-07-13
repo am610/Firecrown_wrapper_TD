@@ -54,8 +54,7 @@ The main wrapper script, `Firecrown_wrapper.py`, orchestrates four stages:
 The code also includes:
 - a reusable subprocess execution helper in `subprocess_executor.py`,
 - tests in `test_Firecrown_wrapper.py`,
-- a PyInstaller spec for building a standalone executable,
-- and Sphinx documentation scaffolding.
+- and a PyInstaller spec for building a standalone executable.
 
 ---
 
@@ -70,12 +69,7 @@ The code also includes:
 ├── Firecrown_wrapper.spec      # PyInstaller spec for building an executable
 ├── requirements.txt            # Minimal Python dependencies used directly here
 ├── README.md                   # Project overview and usage
-├── conf.py                     # Sphinx documentation configuration
-├── index.rst                   # Sphinx documentation index
-├── Makefile                    # Sphinx documentation build helper
-├── make.bat                    # Windows Sphinx build helper
-├── .github/workflows/          # GitHub Actions workflows for linting/testing
-└── _build/                     # Generated documentation artifacts
+└── .github/workflows/          # GitHub Actions workflows for linting/testing
 ```
 
 ---
@@ -204,7 +198,7 @@ GitHub Actions workflows are also present for automated linting and testing on `
 - The wrapper expects external Firecrown/COSMOSIS tooling to already be installed and configured.
 - Stage 0 depends on `$FIRECROWN_EXAMPLES_DIR/srd_sn/generate_sn_data.py`.
 - The `CHISQ.py` module exists, but `chi2` is currently left as a placeholder in `Firecrown_wrapper.py`.
-- The repository includes generated/documentation helper files such as `_build/`, `conf.py`, `index.rst`, and Sphinx makefiles.
+- Documentation is currently centered in this README rather than a separate Sphinx docs site.
 
 ---
 
