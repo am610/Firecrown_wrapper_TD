@@ -1,6 +1,6 @@
 # Firecrown Wrapper (TD)
 
-A lightweight wrapper around **Firecrown** workflows for supernova time-domain cosmology analyses with **COSMOSIS**. It streamlines the end-to-end pipeline from Hubble diagram and covariance inputs to SACC generation, parameter estimation, post-processing, plots, and summary outputs.
+A lightweight wrapper around **Firecrown** workflows for supernova time-domain cosmology analyses with **COSMOSIS**. It streamlines the end-to-end pipeline from Hubble diagram and covariance inputs to postprocessed cosmological summaries.
 
 This repository is intended to make it easier to:
 - run Firecrown/COSMOSIS analyses from a single command,
@@ -11,7 +11,7 @@ This repository is intended to make it easier to:
 
 ## Why this repository exists
 
-Running Firecrown for supernova cosmology involves multiple stages, including data preparation into **SACC** format, COSMOSIS parameter estimation, and post-processing of the resulting chains. This wrapper executes those stages as a single task so analyses are easier to:
+Running Firecrown for supernova cosmology involves multiple stages, including data preparation into **SACC** format, COSMOSIS parameter estimation, and post-processing of the resulting chains. This wrapper collects those steps into a more uniform interface that is easier to:
 
 - **reproduce** through a consistent command-line interface,
 - **maintain** through modular Python functions and structured outputs,
