@@ -7,6 +7,29 @@ This repository is intended to make it easier to:
 - standardize execution and output layout across environments,
 - and keep the pipeline logic transparent and easier to embed in larger workflows.
 
+## Quickstart at a glance
+
+**Who this is for**
+- Researchers and workflow developers working with Firecrown, COSMOSIS, and supernova time-domain cosmology pipelines.
+
+**Inputs**
+- Supernova Hubble diagram file
+- Covariance matrix file
+- COSMOSIS `.ini` configuration file
+
+**Outputs**
+- Generated SACC file
+- COSMOSIS chain files
+- Postprocessed plots
+- `SUMMARY.YAML`
+- Log and error files
+
+**Minimal example**
+
+```bash
+python Firecrown_wrapper.py ./input HD.txt cov.txt sn_only.ini -O ./output
+```
+
 ---
 
 ## Why this repository exists
@@ -61,6 +84,8 @@ The code also includes:
 
 This wrapper assumes that **Firecrown** and **COSMOSIS** are already installed and available in the active environment.
 
+### Python dependencies
+
 Python packages used directly by this repository are listed in `requirements.txt`:
 
 ```bash
@@ -71,6 +96,8 @@ Current listed dependencies:
 - `pandas`
 - `numpy`
 - `pyyaml`
+
+### External required tools
 
 You may also need environment-specific tooling such as:
 - `cosmosis`
