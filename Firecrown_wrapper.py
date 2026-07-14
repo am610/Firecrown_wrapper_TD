@@ -52,6 +52,7 @@ time0 = time.time()
 logging.basicConfig(filename='wrapper.log', level=logging.INFO)
 
 OUTPUT_PATH = os.getcwd()
+SUMMARY_PATH = pathlib.Path(OUTPUT_PATH) / "SUMMARY.YAML"
 
 summary = {
     "STAGE0": "NOT_STARTED",
@@ -78,10 +79,14 @@ summary = {
     "OMran": None,
 }
 
-def write_summary():
-    """Write the current summary state to SUMMARY.YAML file."""
-    with open('SUMMARY.YAML', 'w') as f:
-        yaml.dump(summary, f)
+def write_summary(summary_path=None) -> None:
+    """Write the current summary state to disk."""
+    if summary_path is None:
+        summary_path = SUMMARY_PATH
+    summary_path = pathlib.Path(summary_path)
+    summary_path.parent.mkdir(parents=True, exist_ok=True)
+    with summary_path.open("w", encoding="utf-8") as summary_file:
+        yaml.dump(summary, summary_file)
 
 @contextmanager
 def redirect_stdout(out_file):
@@ -125,7 +130,7 @@ def parse_arguments():
         "-s",
         "--summary",
         type=pathlib.Path,
-        default=os.path.join(OUTPUT_PATH, "SUMMARY.YAML"),
+        default=SUMMARY_PATH,
         help="-s SUMMARY.YAML output path (Default: %s)" % (OUTPUT_PATH),
     )
     args = parser.parse_args()
@@ -260,7 +265,17 @@ def burnin(chain: str) -> int:
         raise
 
 
-def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
+def run_stages(
+    path,
+    hd,
+    cov,
+    ini,
+    error_path,
+    output_path,
+    plot_path,
+    param_override="",
+    summary_path=None,
+):
     """
     Run the various stages of the analysis using SubprocessExecutor.
     
@@ -288,9 +303,11 @@ def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
     executor = get_executor(timeout=3600)
     commands = []
     
+    ini_path = pathlib.Path(ini)
+    ini_stem = ini_path.stem
     # Stage 0: Generate SACC data
     summary["STAGE0"] = "STARTED"
-    write_summary()
+    write_summary(summary_path)
 
     PWD = os.getcwd()
     sacc_file = os.path.join(PWD, "srd-y1-converted.sacc")
@@ -308,70 +325,75 @@ def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
     try:
         returncode = executor.run(
             stage_0_command, 
-            f"{error_path}/generate_sn_data_output_{ini}.log", 
-            f"{error_path}/generate_sn_data_output_ERROR_{ini}.err",
+            f"{error_path}/generate_sn_data_output_{ini_stem}.log", 
+            f"{error_path}/generate_sn_data_output_ERROR_{ini_stem}.err",
             description="Stage 0: Generate SACC file from SN data"
         )
         
         if returncode != 0:
             summary["STAGE0"] = "FAILED"
             summary["ABORT_IF_ZERO"] = 0
-            write_summary()
+            write_summary(summary_path)
             raise RuntimeError("Stage 0 (SACC generation) failed. Check generate_sn_data error logs.")
         else:
             summary["STAGE0"] = "SUCCESSFUL"
-            write_summary()
+            write_summary(summary_path)
             logging.info("Stage 0 (SACC generation) completed successfully.")
-    except RuntimeError as e:
+    except RuntimeError:
         summary["STAGE0"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
-        write_summary()
+        write_summary(summary_path)
         raise
 
     # Stage 1: Run COSMOSIS
     summary["STAGE1"] = "STARTED"
-    write_summary()
+    write_summary(summary_path)
     
-    stage_1_command = (
-        f"cosmosis {ini} "
-        f"-p firecrown_likelihood.sacc_file={os.getcwd()}/srd-y1-converted.sacc "
-        f"output.filename={output_path}/{ini.replace('.ini', '.txt')} "
-        f"--mpi"
-    )
+    stage_1_parts = [
+        f"cosmosis {ini_path}",
+        "-p",
+        f"firecrown_likelihood.sacc_file={os.getcwd()}/srd-y1-converted.sacc",
+        f"output.filename={output_path}/{ini_stem}.txt",
+    ]
+    param_override_stripped = param_override.strip()
+    if param_override_stripped:
+        stage_1_parts.append(param_override_stripped)
+    stage_1_parts.append("--mpi")
+    stage_1_command = " ".join(stage_1_parts)
     commands.append(f"\nCosmosis Input Vector: {stage_1_command}\n")
     
     try:
         returncode = executor.run(
             stage_1_command, 
-            f"{error_path}/COSMOSIS_output_{ini}.log", 
-            f"{error_path}/COSMOSIS_output_ERROR_{ini}.err",
+            f"{error_path}/COSMOSIS_output_{ini_stem}.log", 
+            f"{error_path}/COSMOSIS_output_ERROR_{ini_stem}.err",
             description="Stage 1: Run COSMOSIS for parameter estimation"
         )
         
         if returncode != 0:
             summary["STAGE1"] = "FAILED"
             summary["ABORT_IF_ZERO"] = 0
-            write_summary()
+            write_summary(summary_path)
             raise RuntimeError("Stage 1 (COSMOSIS) failed. Check COSMOSIS error logs.")
         else:
             summary["STAGE1"] = "SUCCESSFUL"
-            write_summary()
+            write_summary(summary_path)
             logging.info("Stage 1 (COSMOSIS) completed successfully.")
-    except RuntimeError as e:
+    except RuntimeError:
         summary["STAGE1"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
-        write_summary()
+        write_summary(summary_path)
         raise
     
     # Stage 2: Post-processing
     summary["STAGE2"] = "STARTED"
-    write_summary()
+    write_summary(summary_path)
     
-    burnpath = os.path.join(output_path, str(ini.replace(".ini", ".txt")))
+    burnpath = os.path.join(output_path, f"{ini_stem}.txt")
     burn_length = burnin(burnpath)
     
     stage_2_command = (
-        f"cosmosis-postprocess {output_path}/{ini.replace('.ini', '*.txt')} "
+        f"cosmosis-postprocess {output_path}/{ini_stem}*.txt "
         f"-o {plot_path} "
         f"--burn {burn_length}"
     )
@@ -380,29 +402,29 @@ def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
     try:
         returncode = executor.run(
             stage_2_command, 
-            f"{error_path}/PostProcess_output_{ini}.log", 
-            f"{error_path}/PostProcess_output_ERROR_{ini}.err",
+            f"{error_path}/PostProcess_output_{ini_stem}.log", 
+            f"{error_path}/PostProcess_output_ERROR_{ini_stem}.err",
             description="Stage 2: Post-process results and generate plots"
         )
         
         if returncode != 0:
             summary["STAGE2"] = "FAILED"
             summary["ABORT_IF_ZERO"] = 0
-            write_summary()
+            write_summary(summary_path)
             raise RuntimeError("Stage 2 (Post-processing) failed. Check PostProcess error logs.")
         else:
             summary["STAGE2"] = "SUCCESSFUL"
-            write_summary()
+            write_summary(summary_path)
             logging.info("Stage 2 (Post-processing) completed successfully.")
-    except RuntimeError as e:
+    except RuntimeError:
         summary["STAGE2"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
-        write_summary()
+        write_summary(summary_path)
         raise
     
     # Stage 3: Extract cosmological parameters
     summary["STAGE3"] = "STARTED"
-    write_summary()
+    write_summary(summary_path)
     
     try:
         f1 = os.path.join(path, hd)
@@ -433,13 +455,13 @@ def run_stages(path, hd, cov, ini, error_path, output_path, plot_path):
         summary["OM"] = cosmo_params["cosmological_parameters--omega_m"].iloc[0]
         summary["OMsig_marg"] = cosmo_params["cosmological_parameters--omega_m"].iloc[1]
         summary["STAGE3"] = "SUCCESSFUL"
-        write_summary()
+        write_summary(summary_path)
         logging.info("Stage 3 (Parameter extraction) completed successfully.")
         
     except Exception as e:
         summary["STAGE3"] = "FAILED"
         summary["ABORT_IF_ZERO"] = 0
-        write_summary()
+        write_summary(summary_path)
         logging.error(f"Stage 3 failed with error: {str(e)}")
         raise RuntimeError(f"Stage 3 (Parameter extraction) failed: {str(e)}") from e
     
@@ -449,7 +471,6 @@ def main():
     """Main function that orchestrates the different stages of the analysis."""
     # Parse command-line arguments
     args = parse_arguments()
-
     # Create the output directory if it doesn't exist
     if not os.path.exists(args.outdir):
         os.makedirs(args.outdir)
@@ -486,7 +507,17 @@ def main():
 
     # Run the various stages of the analysis
     try:
-        commands = run_stages(args.path, args.hd, args.cov, args.ini, error_path, output_path, plot_path)
+        commands = run_stages(
+            args.path,
+            args.hd,
+            args.cov,
+            args.ini,
+            error_path,
+            output_path,
+            plot_path,
+            args.param,
+            pathlib.Path(args.summary),
+        )
         
         # Remove duplicates from the command list
         commands = list(set(commands))

@@ -3,12 +3,10 @@
 # For the full list of built-in configuration values, see the documentation:
 # https://www.sphinx-doc.org/en/master/usage/configuration.html
 
-import recommonmark
 from recommonmark.transform import AutoStructify
 
 extensions = ['recommonmark']
 
-# At the bottom of the file
 def setup(app):
     app.add_config_value('recommonmark_config', {
             'auto_toc_tree_section': 'Contents',
@@ -26,8 +24,6 @@ release = "'1.1'"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
-
-extensions = []
 
 templates_path = ['_templates']
 exclude_patterns = ['_build', 'Thumbs.db', '.DS_Store']
