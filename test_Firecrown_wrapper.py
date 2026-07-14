@@ -11,7 +11,6 @@ Tests cover:
 """
 
 import argparse
-from pathlib import Path
 import sys
 
 import pytest
@@ -19,7 +18,6 @@ import pandas as pd
 import numpy as np
 import yaml
 from unittest.mock import patch
-import Firecrown_wrapper as wrapper
 from Firecrown_wrapper import (
     parse_arguments,
     setup_directories,
@@ -27,6 +25,7 @@ from Firecrown_wrapper import (
     check_files_and_paths,
     FoM,
     burnin,
+    summary,
     valid_directory_path,
     write_summary,
 )
@@ -81,23 +80,21 @@ class TestArgumentParsing:
             assert args.param == 'param.value=42'
             assert args.summary == 'custom_summary.yaml'
 
-    def test_write_summary_respects_configured_summary_path(self, tmp_path):
+    def test_write_summary_uses_custom_path(self, tmp_path):
         """Test that write_summary writes to the configured summary path."""
         summary_path = tmp_path / "custom_summary.yaml"
-        previous_summary_path = wrapper.SUMMARY_PATH
-        previous_stage0 = wrapper.summary["STAGE0"]
+        original_summary = summary.copy()
 
         try:
-            wrapper.SUMMARY_PATH = Path(summary_path)
-            wrapper.summary["STAGE0"] = "TESTING"
-            write_summary()
+            summary["STAGE0"] = "TESTING"
+            write_summary(summary_path)
 
             with open(summary_path, "r", encoding="utf-8") as handle:
                 loaded = yaml.safe_load(handle)
             assert loaded["STAGE0"] == "TESTING"
         finally:
-            wrapper.SUMMARY_PATH = previous_summary_path
-            wrapper.summary["STAGE0"] = previous_stage0
+            summary.clear()
+            summary.update(original_summary)
 
 
 class TestDirectorySetup:

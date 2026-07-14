@@ -24,7 +24,7 @@ def ch(path: str, ini_file: str) -> float:
     Returns:
         Chi-square value computed from the reduced chain column.
     """
-    burn_in = 10  # token value
+    burn = 10  # Keep legacy CHISQ output compatible with historical postprocessing defaults.
     output_dir = Path(path)
     ini_path = Path(ini_file)
     sampler, ini_config = read_input(ini_file)
@@ -33,7 +33,7 @@ def ch(path: str, ini_file: str) -> float:
         ini_config,
         ini_path.stem,
         0,
-        burn=burn_in,
+        burn=burn,
         no_2d=False,
     )
 
@@ -48,4 +48,4 @@ def ch(path: str, ini_file: str) -> float:
     plotter = MetropolisHastingsPlots1D(postprocessor)
     reduced_column = plotter.reduced_col(header_tokens[-1])
     chi_square = -2 * np.min(reduced_column)
-    return float(chi_square)
+    return chi_square
