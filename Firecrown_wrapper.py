@@ -355,8 +355,9 @@ def run_stages(
         f"firecrown_likelihood.sacc_file={os.getcwd()}/srd-y1-converted.sacc",
         f"output.filename={output_path}/{ini_stem}.txt",
     ]
-    if param_override.strip():
-        stage_1_parts.append(param_override.strip())
+    param_override_stripped = param_override.strip()
+    if param_override_stripped:
+        stage_1_parts.append(param_override_stripped)
     stage_1_parts.append("--mpi")
     stage_1_command = " ".join(stage_1_parts)
     commands.append(f"\nCosmosis Input Vector: {stage_1_command}\n")
